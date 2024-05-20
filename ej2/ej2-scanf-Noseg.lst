@@ -1,0 +1,173 @@
+     1                                  global main
+     2                                  extern puts
+     3                                  extern printf
+     4                                  extern scanf
+     5                                  extern sscanf
+     6                                  
+     7                                  %macro mPuts 1
+     8                                      mov rdi, %1
+     9                                      sub rsp, 8
+    10                                      call puts
+    11                                      add rsp, 8
+    12                                  %endmacro
+    13                                  
+    14                                  %macro mScanf 2
+    15                                      mov rdi, %1
+    16                                      mov rsi, %2
+    17                                      sub rsp, 8
+    18                                      call scanf
+    19                                      add rsp, 8
+    20                                  %endmacro
+    21                                  
+    22                                  %macro mPrintf 1
+    23                                      mov rdi, %1
+    24                                      sub rsp, 8
+    25                                      call printf
+    26                                      add rsp, 8
+    27                                  %endmacro
+    28                                  
+    29                                  section .data
+    30 00000000 496E67726573652073-         msgNombre           db  "Ingrese su nombre: ", 0
+    30 00000009 75206E6F6D6272653A-
+    30 00000012 2000               
+    31 00000014 496E67726573652073-         msgApellido         db  "Ingrese su apellido: ", 0
+    31 0000001D 75206170656C6C6964-
+    31 00000026 6F3A2000           
+    32 0000002A 496E67726573652073-         msgPadron           db  "Ingrese su numero de padron: ", 0
+    32 00000033 75206E756D65726F20-
+    32 0000003C 646520706164726F6E-
+    32 00000045 3A2000             
+    33 00000048 496E67726573652073-         msgFechaNac         db  "Ingrese su fecha de nacimiento (dd/mm/yyyy): ", 0
+    33 00000051 752066656368612064-
+    33 0000005A 65206E6163696D6965-
+    33 00000063 6E746F202864642F6D-
+    33 0000006C 6D2F79797979293A20-
+    33 00000075 00                 
+    34 00000076 456C20616C756D6E6F-         msgOutput           db  "El alumno %s %s de Padrón N° %s tiene %d años", 10, 0
+    34 0000007F 202573202573206465-
+    34 00000088 2050616472C3B36E20-
+    34 00000091 4EC2B0202573207469-
+    34 0000009A 656E652025642061C3-
+    34 000000A3 B16F730A00         
+    35 000000A8 25642F25642F256400          formatoFecha        db  "%d/%d/%d", 0
+    36 000000B1 257300                      formatoString       db  "%s", 0
+    37                                  
+    38                                  section .bss
+    39 00000000 <res 64h>                   nombre              resb 100
+    40 00000064 <res 64h>                   apellido            resb 100
+    41 000000C8 <res 14h>                   padron              resb 20
+    42 000000DC <res 14h>                   fechaNac            resb 20
+    43 000000F0 ????????                    dia                 resd 1
+    44 000000F4 ????????                    mes                 resd 1
+    45 000000F8 ????????                    anio                resd 1
+    46 000000FC ????????                    edad                resd 1
+    47                                  
+    48                                  section .text
+    49                                  
+    50                                  main:
+    51                                      ; Ingreso del nombre
+    52                                      mPuts msgNombre
+     8 00000000 48BF-               <1>  mov rdi, %1
+     8 00000002 [0000000000000000]  <1>
+     9 0000000A 4883EC08            <1>  sub rsp, 8
+    10 0000000E E8(00000000)        <1>  call puts
+    11 00000013 4883C408            <1>  add rsp, 8
+    53                                      mScanf formatoString, nombre
+    15 00000017 48BF-               <1>  mov rdi, %1
+    15 00000019 [B100000000000000]  <1>
+    16 00000021 48BE-               <1>  mov rsi, %2
+    16 00000023 [0000000000000000]  <1>
+    17 0000002B 4883EC08            <1>  sub rsp, 8
+    18 0000002F E8(00000000)        <1>  call scanf
+    19 00000034 4883C408            <1>  add rsp, 8
+    54                                  
+    55                                      ; Ingreso del apellido
+    56                                      mPuts msgApellido
+     8 00000038 48BF-               <1>  mov rdi, %1
+     8 0000003A [1400000000000000]  <1>
+     9 00000042 4883EC08            <1>  sub rsp, 8
+    10 00000046 E8(00000000)        <1>  call puts
+    11 0000004B 4883C408            <1>  add rsp, 8
+    57                                      mScanf formatoString, apellido
+    15 0000004F 48BF-               <1>  mov rdi, %1
+    15 00000051 [B100000000000000]  <1>
+    16 00000059 48BE-               <1>  mov rsi, %2
+    16 0000005B [6400000000000000]  <1>
+    17 00000063 4883EC08            <1>  sub rsp, 8
+    18 00000067 E8(00000000)        <1>  call scanf
+    19 0000006C 4883C408            <1>  add rsp, 8
+    58                                  
+    59                                      ; Ingreso del numero de padron
+    60                                      mPuts msgPadron
+     8 00000070 48BF-               <1>  mov rdi, %1
+     8 00000072 [2A00000000000000]  <1>
+     9 0000007A 4883EC08            <1>  sub rsp, 8
+    10 0000007E E8(00000000)        <1>  call puts
+    11 00000083 4883C408            <1>  add rsp, 8
+    61                                      mScanf formatoString, padron
+    15 00000087 48BF-               <1>  mov rdi, %1
+    15 00000089 [B100000000000000]  <1>
+    16 00000091 48BE-               <1>  mov rsi, %2
+    16 00000093 [C800000000000000]  <1>
+    17 0000009B 4883EC08            <1>  sub rsp, 8
+    18 0000009F E8(00000000)        <1>  call scanf
+    19 000000A4 4883C408            <1>  add rsp, 8
+    62                                  
+    63                                      ; Ingreso de la fecha de nacimiento
+    64                                      mPuts msgFechaNac
+     8 000000A8 48BF-               <1>  mov rdi, %1
+     8 000000AA [4800000000000000]  <1>
+     9 000000B2 4883EC08            <1>  sub rsp, 8
+    10 000000B6 E8(00000000)        <1>  call puts
+    11 000000BB 4883C408            <1>  add rsp, 8
+    65                                      mScanf formatoString, fechaNac
+    15 000000BF 48BF-               <1>  mov rdi, %1
+    15 000000C1 [B100000000000000]  <1>
+    16 000000C9 48BE-               <1>  mov rsi, %2
+    16 000000CB [DC00000000000000]  <1>
+    17 000000D3 4883EC08            <1>  sub rsp, 8
+    18 000000D7 E8(00000000)        <1>  call scanf
+    19 000000DC 4883C408            <1>  add rsp, 8
+    66                                  
+    67                                      ; Parsear la fecha de nacimiento
+    68 000000E0 48BF-                       mov rdi, formatoFecha
+    68 000000E2 [A800000000000000] 
+    69 000000EA 48BE-                       mov rsi, fechaNac
+    69 000000EC [DC00000000000000] 
+    70 000000F4 48BA-                       mov rdx, dia
+    70 000000F6 [F000000000000000] 
+    71 000000FE 48B9-                       mov rcx, mes
+    71 00000100 [F400000000000000] 
+    72 00000108 49B8-                       mov r8, anio
+    72 0000010A [F800000000000000] 
+    73 00000112 4883EC08                    sub rsp, 8             ; Alinear la pila
+    74 00000116 E8(00000000)                call sscanf
+    75 0000011B 4883C408                    add rsp, 8             ; Restaurar la pila
+    76                                  
+    77                                      ; Obtener el año actual (2024)
+    78 0000011F B8E8070000                  mov eax, 2024
+    79                                  
+    80                                      ; Restar el año de nacimiento al año actual
+    81 00000124 2B0425[F8000000]            sub eax, dword [anio]
+    82                                  
+    83                                      ; Guardar el resultado en la variable edad
+    84 0000012B 890425[FC000000]            mov [edad], eax
+    85                                  
+    86                                      ; Imprimir el mensaje final
+    87 00000132 48BF-                       mov rdi, msgOutput
+    87 00000134 [7600000000000000] 
+    88 0000013C 48BE-                       mov rsi, nombre
+    88 0000013E [0000000000000000] 
+    89 00000146 48BA-                       mov rdx, apellido
+    89 00000148 [6400000000000000] 
+    90 00000150 48B9-                       mov rcx, padron
+    90 00000152 [C800000000000000] 
+    91 0000015A 448B0425[FC000000]          mov r8d, [edad]
+    92 00000162 4883EC08                    sub rsp, 8             ; Alinear la pila
+    93 00000166 E8(00000000)                call printf
+    94 0000016B 4883C408                    add rsp, 8             ; Restaurar la pila
+    95                                  
+    96                                      ; Salir del programa
+    97 0000016F B83C000000                  mov eax, 60            ; syscall: exit
+    98 00000174 31FF                        xor edi, edi           ; status: 0
+    99 00000176 0F05                        syscall

@@ -1,0 +1,254 @@
+     1                                  global main
+     2                                  extern puts
+     3                                  extern printf
+     4                                  extern scanf
+     5                                  extern sscanf
+     6                                  
+     7                                  
+     8                                  %macro mPuts 1
+     9                                      mov rdi, %1
+    10                                      sub rsp, 8
+    11                                      call puts
+    12                                      add rsp, 8
+    13                                  %endmacro
+    14                                  
+    15                                  %macro mScanf 2
+    16                                      mov rdi, %1
+    17                                      mov rsi, %2
+    18                                      sub rsp, 8
+    19                                      call scanf
+    20                                      add rsp, 8
+    21                                  %endmacro
+    22                                  
+    23                                  %macro mPrintf 1
+    24                                      mov rdi, %1
+    25                                      sub rsp, 8
+    26                                      call printf
+    27                                      add rsp, 8
+    28                                  %endmacro
+    29                                  
+    30                                  section .data
+    31                                      ; Mensajes
+    32 00000000 496E67726573652073-         msgNombre           db  "Ingrese su nombre: ", 0
+    32 00000009 75206E6F6D6272653A-
+    32 00000012 2000               
+    33 00000014 496E67726573652073-         msgApellido         db  "Ingrese su apellido: ", 0
+    33 0000001D 75206170656C6C6964-
+    33 00000026 6F3A2000           
+    34 0000002A 496E67726573652073-         msgPadron           db  "Ingrese su numero de padron: ", 0
+    34 00000033 75206E756D65726F20-
+    34 0000003C 646520706164726F6E-
+    34 00000045 3A2000             
+    35 00000048 496E67726573652073-         msgFechaNac         db  "Ingrese su año de nacimiento (dd/mm/yyyy): ", 0
+    35 00000051 752061C3B16F206465-
+    35 0000005A 206E6163696D69656E-
+    35 00000063 746F202864642F6D6D-
+    35 0000006C 2F79797979293A2000 
+    36 00000075 456C20616C756D6E6F-         msgOutput           db  "El alumno %s %s de Padrón N° %s tiene %d años", 10, 0
+    36 0000007E 202573202573206465-
+    36 00000087 2050616472C3B36E20-
+    36 00000090 4EC2B0202573207469-
+    36 00000099 656E652025642061C3-
+    36 000000A2 B16F730A00         
+    37                                      
+    38                                      ;formatos
+    39 000000A7 25642F25642F256400          formatoFecha        db  "%d/%d/%d", 0
+    40 000000B0 257300                      formatoString       db  "%s", 0
+    41                                  
+    42                                      ;mensajes de error
+    43                                      msgErrorFormato     db  ""
+    44                                      msgErrorDia         db ""
+    45                                      msgErrorMes         db""
+    46                                      msgErrorAnio        db ""
+    47                                  
+    48                                  
+    49                                  
+    50                                  section .bss
+    51                                      ;input
+    52 00000000 <res 64h>                   nombre              resb 100
+    53 00000064 <res 64h>                   apellido            resb 100
+    54 000000C8 <res 14h>                   padron              resb 20
+    55                                  
+    56                                      ;fechas
+    57 000000DC <res 14h>                   fechaNac            resb 20
+    58 000000F0 ????????                    dia                 resd 1
+    59 000000F4 ????????                    mes                 resd 1
+    60 000000F8 ????????                    anio                resd 1
+    61                                  
+    62                                      ;endgoal
+    63 000000FC ????????                    edad                resd 1
+    64                                  
+    65                                  section .text
+    66                                  
+    67                                  main:
+    68                                      ; Ingreso del nombre
+    69                                      mPuts msgNombre
+     9 00000000 48BF-               <1>  mov rdi, %1
+     9 00000002 [0000000000000000]  <1>
+    10 0000000A 4883EC08            <1>  sub rsp, 8
+    11 0000000E E8(00000000)        <1>  call puts
+    12 00000013 4883C408            <1>  add rsp, 8
+    70                                      mScanf formatoString, nombre
+    16 00000017 48BF-               <1>  mov rdi, %1
+    16 00000019 [B000000000000000]  <1>
+    17 00000021 48BE-               <1>  mov rsi, %2
+    17 00000023 [0000000000000000]  <1>
+    18 0000002B 4883EC08            <1>  sub rsp, 8
+    19 0000002F E8(00000000)        <1>  call scanf
+    20 00000034 4883C408            <1>  add rsp, 8
+    71                                  
+    72                                      ; Ingreso del apellido
+    73                                      mPuts msgApellido
+     9 00000038 48BF-               <1>  mov rdi, %1
+     9 0000003A [1400000000000000]  <1>
+    10 00000042 4883EC08            <1>  sub rsp, 8
+    11 00000046 E8(00000000)        <1>  call puts
+    12 0000004B 4883C408            <1>  add rsp, 8
+    74                                      mScanf formatoString, apellido
+    16 0000004F 48BF-               <1>  mov rdi, %1
+    16 00000051 [B000000000000000]  <1>
+    17 00000059 48BE-               <1>  mov rsi, %2
+    17 0000005B [6400000000000000]  <1>
+    18 00000063 4883EC08            <1>  sub rsp, 8
+    19 00000067 E8(00000000)        <1>  call scanf
+    20 0000006C 4883C408            <1>  add rsp, 8
+    75                                  
+    76                                      ; Ingreso del numero de padron
+    77                                      mPuts msgPadron
+     9 00000070 48BF-               <1>  mov rdi, %1
+     9 00000072 [2A00000000000000]  <1>
+    10 0000007A 4883EC08            <1>  sub rsp, 8
+    11 0000007E E8(00000000)        <1>  call puts
+    12 00000083 4883C408            <1>  add rsp, 8
+    78                                      mScanf formatoString, padron
+    16 00000087 48BF-               <1>  mov rdi, %1
+    16 00000089 [B000000000000000]  <1>
+    17 00000091 48BE-               <1>  mov rsi, %2
+    17 00000093 [C800000000000000]  <1>
+    18 0000009B 4883EC08            <1>  sub rsp, 8
+    19 0000009F E8(00000000)        <1>  call scanf
+    20 000000A4 4883C408            <1>  add rsp, 8
+    79                                  
+    80                                      ; Ingreso de la fecha de nacimiento
+    81                                  input_fecha:
+    82                                      mPuts msgFechaNac
+     9 000000A8 48BF-               <1>  mov rdi, %1
+     9 000000AA [4800000000000000]  <1>
+    10 000000B2 4883EC08            <1>  sub rsp, 8
+    11 000000B6 E8(00000000)        <1>  call puts
+    12 000000BB 4883C408            <1>  add rsp, 8
+    83                                      mScanf formatoString, fechaNac 
+    16 000000BF 48BF-               <1>  mov rdi, %1
+    16 000000C1 [B000000000000000]  <1>
+    17 000000C9 48BE-               <1>  mov rsi, %2
+    17 000000CB [DC00000000000000]  <1>
+    18 000000D3 4883EC08            <1>  sub rsp, 8
+    19 000000D7 E8(00000000)        <1>  call scanf
+    20 000000DC 4883C408            <1>  add rsp, 8
+    84                                      
+    85                                  
+    86                                      ; Parsear la fecha de nacimiento
+    87 000000E0 48BF-                       mov rdi, formatoFecha
+    87 000000E2 [A700000000000000] 
+    88 000000EA 48BE-                       mov rsi, fechaNac
+    88 000000EC [DC00000000000000] 
+    89 000000F4 48BA-                       mov rdx, dia
+    89 000000F6 [F000000000000000] 
+    90 000000FE 48B9-                       mov rcx, mes
+    90 00000100 [F400000000000000] 
+    91 00000108 49B8-                       mov r8, anio
+    91 0000010A [F800000000000000] 
+    92 00000112 4883EC08                    sub rsp, 8             ; Alinear la pila
+    93 00000116 E8(00000000)                call sscanf
+    94 0000011B 4883C408                    add rsp, 8             ; Restaurar la pila
+    95                                  
+    96                                  
+    97                                      ; Validar el formato de la fecha ingresada
+    98 0000011F 833C25[F8000000]00          cmp dword [anio], 0
+    99 00000127 0F84BB000000                je error_formato
+   100 0000012D 833C25[F4000000]00          cmp dword [mes], 0
+   101 00000135 0F84AD000000                je error_formato
+   102 0000013B 833C25[F0000000]00          cmp dword [dia], 0
+   103 00000143 0F849F000000                je error_formato
+   104                                  
+   105                                      ; Verificar que el día esté en el rango válido (1-31)
+   106 00000149 833C25[F0000000]01          cmp dword [dia], 1
+   107 00000151 0F8CAD000000                jl error_dia
+   108 00000157 833C25[F0000000]1F          cmp dword [dia], 31
+   109 0000015F 0F8F9F000000                jg error_dia
+   110                                  
+   111                                      ; Verificar que el mes esté en el rango válido (1-12)
+   112 00000165 833C25[F4000000]01          cmp dword [mes], 1
+   113 0000016D 0F8CAD000000                jl error_mes
+   114 00000173 833C25[F4000000]0C          cmp dword [mes], 12
+   115 0000017B 0F8F9F000000                jg error_mes
+   116                                  
+   117                                      ; Verificar que el año sea mayor que 0 (no permitir años negativos)
+   118 00000181 833C25[F8000000]00          cmp dword [anio], 0
+   119 00000189 0F8EAD000000                jle error_anio
+   120                                  
+   121                                  
+   122                                  
+   123                                  
+   124                                      ; Calcular la edad (2024 - año de nacimiento)
+   125 0000018F B8E8070000                  mov eax, 2024                           ; Obtener el año actual (2024)
+   126 00000194 2B0425[F8000000]            sub eax, dword [anio]                   ; Restar el año de nacimiento al año actual
+   127 0000019B 890425[FC000000]            mov [edad], eax                         ; Guardar el resultado en la variable edad
+   128                                  
+   129                                  
+   130                                      
+   131                                  
+   132                                      ; Imprimir el mensaje final
+   133 000001A2 48BF-                       mov rdi, msgOutput
+   133 000001A4 [7500000000000000] 
+   134 000001AC 48BE-                       mov rsi, nombre
+   134 000001AE [0000000000000000] 
+   135 000001B6 48BA-                       mov rdx, apellido
+   135 000001B8 [6400000000000000] 
+   136 000001C0 48B9-                       mov rcx, padron
+   136 000001C2 [C800000000000000] 
+   137 000001CA 448B0425[FC000000]          mov r8d, [edad]
+   138 000001D2 4883EC08                    sub rsp, 8             ; Alinear la pila
+   139 000001D6 E8(00000000)                call printf
+   140 000001DB 4883C408                    add rsp, 8             ; Restaurar la pila
+   141                                  
+   142                                      ; Salir del programa
+   143 000001DF B83C000000                  mov eax, 60            ; syscall: exit
+   144 000001E4 31FF                        xor edi, edi           ; status: 0
+   145 000001E6 0F05                        syscall
+   146                                  
+   147                                  error_formato:
+   148                                      mPuts msgErrorFormato
+     9 000001E8 48BF-               <1>  mov rdi, %1
+     9 000001EA [B300000000000000]  <1>
+    10 000001F2 4883EC08            <1>  sub rsp, 8
+    11 000001F6 E8(00000000)        <1>  call puts
+    12 000001FB 4883C408            <1>  add rsp, 8
+   149 000001FF E9A4FEFFFF                  jmp input_fecha
+   150                                  
+   151                                  error_dia:
+   152                                      mPuts msgErrorDia
+     9 00000204 48BF-               <1>  mov rdi, %1
+     9 00000206 [B300000000000000]  <1>
+    10 0000020E 4883EC08            <1>  sub rsp, 8
+    11 00000212 E8(00000000)        <1>  call puts
+    12 00000217 4883C408            <1>  add rsp, 8
+   153 0000021B E988FEFFFF                  jmp input_fecha
+   154                                  
+   155                                  error_mes:
+   156                                      mPuts msgErrorMes
+     9 00000220 48BF-               <1>  mov rdi, %1
+     9 00000222 [B300000000000000]  <1>
+    10 0000022A 4883EC08            <1>  sub rsp, 8
+    11 0000022E E8(00000000)        <1>  call puts
+    12 00000233 4883C408            <1>  add rsp, 8
+   157 00000237 E96CFEFFFF                  jmp input_fecha
+   158                                  
+   159                                  error_anio:
+   160                                      mPuts msgErrorAnio
+     9 0000023C 48BF-               <1>  mov rdi, %1
+     9 0000023E [B300000000000000]  <1>
+    10 00000246 4883EC08            <1>  sub rsp, 8
+    11 0000024A E8(00000000)        <1>  call puts
+    12 0000024F 4883C408            <1>  add rsp, 8
+   161 00000253 E950FEFFFF                  jmp input_fecha
