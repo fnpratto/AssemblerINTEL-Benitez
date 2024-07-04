@@ -1,0 +1,85 @@
+THIAGO KOVNAT 104429
+
+0 – Carga inmediata
+1 – Carga
+2 – Almacenar             
+3 – Suma
+4 – Not (AC)
+7 – Bifurcación si (AC) = 0
+8 – Bifurcación si (AC) > 0
+9 – Bifurcación si (AC) < 0
+F – Fin de programa
+
+
+
+
+DIR      CONT              COMENTARIO
+3F9      0000              Auxiliar 
+3FA      2000              Auxiliar almacenamiento
+3FB      1000              Auxiliar carga
+3FC      0000              Puntero a la posicion actual de la lista
+3FD      0000              Contador de ventas
+3FE      0001              Constante, 1
+3FF      0100              Puntero a la posicion a insertar
+
+400      0100              Cargo la direccion del comienzo del vector
+401      23FF              Lo almaceno en la 3FF que uso como puntero a la siguiente posicion a insertar
+402      0400              Cargo el comienzo de la lista
+403      23FC              Lo almaceno en el puntero a la posicion actual
+
+404      13FC              Cargo el puntero
+405      33FB              Le sumo el auxiliar de carga
+406      2407              Lo almaceno en la proxima instruccion
+407      BACA              (AC) = Modelo actual
+408      23F9              Lo almaceno en el auxiliar
+409      1400              (AC) = Modelo deseado
+40A      4000              NOT AC
+40B      33FE              (AC) = (AC) + 1                Hago la resta como A-B como A+compl(B)
+40C      33F9              Le sumo el auxiliar
+40D      7418              Si el resultado es 0, significa que tengo un modelo deseado
+
+40E      13FC              Si el resultado no es 0, el modelo no es deseado, vuelvo a cargar la posicion en la que me encontraba de la lista
+40F      33FE              Le sumo uno para desplazar al siguiente bloque
+410      33FE              Le vuelvo a sumar uno, ahora el puntero apunta al bloque que me dice la siguiente posicion de la lista. (AC) = Direccion de la direccion del proximo nodo
+411      33FB              Le sumo el auxiliar de carga  
+412      2413              Lo almaceno en la siguiente instruccion
+413      BACA              ---------------------------------------
+414      942B              Si el acumulador es menor a 0, significa que el contenido es un -1 y llegue al fin de la lista
+415      23FC              Si no es un -1, es una direccion valida del proximo nodo de la lista y lo almaceno en el puntero
+416      0000              Cargo 0 al acumulador
+417      7404              Bifurcacion incondicional al 404, donde comienza el proceso de carga de la direccion actual
+
+418      13FD              Cargo el contador de ventas
+419      33FE              (AC) = (AC) + 1
+41A      23FD              Lo almaceno en el contador de ventas
+41B      13FC              Cargo el puntero a la posicion de la lista, que esta apuntando al modelo
+41C      33FE              Le sumo uno para que apunte al numero de serie
+41D      33FB              Le sumo el auxiliar de carga
+41E      241F              Lo almaceno en la proxima instruccion
+41F      BACA              (AC) = Numero de serie
+420      23F9              Lo almaceno en el auxiliar
+421      13FF              Cargo el puntero a la posicion donde deberia insertar el proximo elemento
+422      33FA              Le sumo el auxiliar de almacenamiento
+423      2425              Lo almaceno en la 425
+424      13F9              Cargo el contenido del auxiliar
+425      BACA              ----------------------------------------------------------------------------------
+426      13FF              Cargo el puntero a la proxima posicion a insertar
+427      33FE              Le sumo uno para desplazarla un bloque
+428      23FF              Lo almaceno como la nueva posicion a insertar
+429      0000              Cargo 0 al acumulador
+42A      740E              Bifurcacion incondicional al 40E, donde comienza el proceso de hacer que el puntero apunte al proximo nodo de la lista
+
+42B      13FD              Cargo el contador de ventas
+42C      2401              Lo almaceno en la 401
+42D      FFFF              FIN PROGRAMA
+                      
+
+
+
+
+
+
+
+
+
+

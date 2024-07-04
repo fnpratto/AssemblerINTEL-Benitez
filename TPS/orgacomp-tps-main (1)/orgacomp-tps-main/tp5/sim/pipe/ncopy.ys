@@ -1,0 +1,85 @@
+#/* $begin ncopy-ys */
+##################################################################
+# ncopy.ys - Copy a src block of len words to dst.
+# Return the number of positive words (>0) contained in src.
+#
+# Include your name and ID here.
+# Ivan Aguirre
+# Tomas Losada
+#
+# Describe how and why you modified the baseline code.
+# We implemented loop unrolling and iaddq
+#
+##################################################################
+# Do not modify this portion
+# Function prologue.
+# %rdi = src, %rsi = dst, %rdx = len
+ncopy:
+
+##################################################################
+# You can modify this portion
+	# Loop header
+	xorq %rax, %rax		# count = 0;
+	iaddq $-3, %rdx		# rdx = len - 3
+	jle RemainingWords	# if len <= 0, goto RemainingWords:
+
+Loop:
+	mrmovq (%rdi), %rbx		# read word1 from src
+	mrmovq 8(%rdi), %r8		# read word2 from src
+	mrmovq 16(%rdi), %r9	# read word3 from src
+	mrmovq 24(%rdi), %r10	# read word4 from src
+	rmmovq %rbx, (%rsi)		# store word1 to dst
+	rmmovq %r8, 8(%rsi)		# store word2 to dst
+	rmmovq %r9, 16(%rsi)	# store word3 to dst
+	rmmovq %r10, 24(%rsi)	# store word4 to dst
+	andq %rbx, %rbx			# word1 <= 0?
+	jle Npos				# if so, goto Npos:
+	iaddq $1, %rax			# count++
+
+Npos:
+	andq %r8, %r8		# word2 <= 0?
+	jle	Npos1			# if so, goto Npos1
+	iaddq $1, %rax		# count++
+
+Npos1:
+	andq %r9, %r9		# word3 <= 0?
+	jle	Npos2			# if so, goto Npos2
+	iaddq $1, %rax		# count++
+
+Npos2:
+	andq %r10, %r10		# word4 <= 0?
+	jle	Npos3			# if so, goto Npos3
+	iaddq $1, %rax		# count++
+
+Npos3:
+	iaddq $32, %rdi		# src++32
+	iaddq $32, %rsi		# dst++32
+	iaddq $-4, %rdx		# len - 4
+	jg Loop             # if len > 0 go to Loop:
+
+RemainingWords:
+	iaddq $3, %rdx
+
+RemainingWordsLoop:
+    andq %rdx, %rdx     # len <= 0 ?
+    jle Done            # if so, goto Done
+    mrmovq (%rdi), %r10 # read word from src
+	rmmovq %r10, (%rsi) # store word to dst
+	andq %r10, %r10     # word <= 0?
+	jle RemainingWordsLoopNpos
+	iaddq $1, %rax		# count++
+
+RemainingWordsLoopNpos:
+	iaddq $-1, %rdx		# len--
+	iaddq $8, %rdi		# src++
+	iaddq $8, %rsi		# dst++
+	jmp  RemainingWordsLoop
+##################################################################
+# Do not modify the following section of code
+# Function epilogue.
+Done:
+	ret
+##################################################################
+# Keep the following label at the end of your function
+End:
+#/* $end ncopy-ys */

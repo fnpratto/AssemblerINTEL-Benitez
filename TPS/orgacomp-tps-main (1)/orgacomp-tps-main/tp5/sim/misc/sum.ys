@@ -1,0 +1,46 @@
+# Execution begins at address 0 
+	.pos 0
+	irmovq stack, %rsp 	# Set up stack pointer
+	call main			# Execute main program
+	halt				# Terminate program
+
+# Sameple linked list
+.align 8
+node1:
+	.quad 0x00a
+	.quad node2
+node2:
+	.quad 0x0b0
+	.quad node3
+node3:
+	.quad 0xc00
+	.quad 0
+
+main:
+	irmovq node1, %rdi
+	irmovq $0, %r9
+	xorq %rax, %rax		# set rax = 0, (val = 0)
+	call sum_list		# sum_list(node1)
+	ret
+
+# sum_list(list_ptr ls)
+# start in %rdi
+sum_list:
+	pushq %rbx
+	jmp loop
+
+loop:
+	subq %r9, %rdi		# This push pop simulates x86 cmp (we're checking the value of rdi here).
+	je end				# rdi = last node
+	mrmovq 0(%rdi), %rbx	# rbx = actual node
+	mrmovq 8(%rdi), %rdi	# rdi = next node
+	addq %rbx, %rax		# rax += actual data
+	jmp loop
+
+end:
+	popq %rbx
+	ret					
+
+# Stack starts here and grows to lower addresses
+	.pos 0x200
+stack:

@@ -1,0 +1,119 @@
+Tengo la siguiente cadena de caracteres EBCDIC: d H ? 8
+
+Primero, debo pasarlo a hexadecimal para ver cuales son los dos BPF con signo almacenados. Uso la tabla para pasar los caracteres a hexa.
+
+d =  84 [16]
+H =  C8 [16]
+? =  6F [16]
+8 =  F8 [16]
+
+Sabiendo que cada digito en hexa son 4 bits y que mi BPF es de 16bits, se que los primeros 4 digitos en hexa representan un BPF y los segundos 4 representan otro.
+
+A)
+
+Primero, debo pasar a base 2. Usando potencia exacta, 2 elevado a la cuarta es 16. Por lo tanto, cada digito en hexa son 4 digitos en binario
+
+    i)  84C8 [16] = 1000 0100 1100 1000 [2]
+
+    ii) 6FF8 [16] = 0110 1111 1111 1000 [2]
+
+Ahora que tengo ambos BPF c/signo en binario, puedo pasar facilmente a decimal.
+
+i) Observo que el primero digito es un 1, por lo que tengo que hacer complemento.
+
+    0111 1011 0011 0111
+  +                   1
+   ----------------------
+    0111 1011 0011  1000
+
+    Saco los 0 a la izquierda, 111 1011 0011 1000 [2]
+    Paso a decimal utilizando el metodo de (digitoBinario * 2 elevado a la posicion contando de derecha a izquierda) En este caso seria 1 x 2 elevado a la 3 + 1 x 2 elevado a la 4, etc
+
+    111 1011 0011 1000 [2] = 31544 [10] 
+
+    Como tenia un 1 indicando que el numero era negativo, se que este numero en base 10 es
+
+    -31544 [10]
+ 
+
+
+
+ ii) Observo que el primer digito es un 0, por lo que no tengo que hacer complemento. 
+     Saco los 0 a izquierda
+    
+     110 1111 1111 1000 [2]
+
+    Utilizando el mismo metodo que use en el i)
+
+     110 1111 1111 1000 [2] = 28664 [10]
+
+    Como el signo era positivo, el numero queda de esa manera.
+
+
+2)
+
+    Para hacer la resta i) - ii), dado que estoy trabajando con BPF c/ signo puedo hacer i) + complemento(ii)
+
+    Busco el complemento de ii)
+
+   
+   
+    1001 0000 0000 0111
+  +                   1
+ ------------------------
+    1001 0000 0000  1000 
+
+
+   Ahora hago i) + resultado previo
+
+    1000 0100 1100 1000
+  + 1001 0000 0000 1000
+ ------------------------
+    0001 0100 1101 0000
+
+    Noto que los ultimos dos acarreos son diferentes, por lo cual se que hay overflow. Por lo tanto, la resta no se podria almacenar en un BPF c/signo de 16 bits
+
+
+3)
+
+ 170663 [8] Lo tengo que pasar a hexadecimal. Utilizo 2 como pivot
+
+ 170663 [8] = 001 111 000 110 110 011 [2] utilizando potencia exacta.
+
+ 00 1111 0001 1011 0011 [2] = F1B3 [16]
+
+ Sabiendo las propiedades del zoneado, se que el numero almacenado en base 10 es -13 [10], dado que B indica negativo.
+
+ Ahora debo pasar a IEEE754 de precision simple
+
+ Paso a binario
+
+ -13 [2] = -(1101) [2]
+
+ Se que el primer bit en IEEE754 se reserva para el signo, y teniendo un numero negativo dicho bit debe ser 1
+
+ Tengo que normalizar la mantisa desplazando la coma hacia la izquierda
+ 
+  1,101 * (10 elevado a la 11 [2])
+
+  Utilizo el metodo de exponente en exceso, teniendo precision simple se que el exceso es 127 ya que tengo 8 bits para guardar el exponente
+
+ 127 [10] + 3[10] = 130[10] = 10000010[2] Utilizando divisiones sucesivas
+
+ Por lo tanto, en base 2, el numero en IEEE754 Precision simple es
+
+ 1 10000010 10100000000000000000000
+                23 bits completando con 0 a derecha
+
+ Ahora tengo que pasar dicho numero a hexadecimal
+
+  
+ 1100 0001 0101 0000 0000 0000 0000 0000 [2] = C1500000 [16] utilizando raiz exacta, 4 digitos en binario representan uno en hexa
+
+ 
+ 
+    
+
+    
+
+

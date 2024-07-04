@@ -1,0 +1,52 @@
+# Execution begins at address 0 
+	.pos 0
+	irmovq stack, %rsp 	# Set up stack pointer
+	call main			# Execute main program
+	halt				# Terminate program
+
+.align 8
+# Source block
+src:
+	.quad 0x00a
+	.quad 0x0b0
+	.quad 0xc00
+
+# Destination block
+dest:
+	.quad 0x111
+	.quad 0x222
+	.quad 0x333
+
+main:
+	irmovq src, %rdi	# rdi = source
+	irmovq dest, %rsi	# rsi = destination
+	irmovq $3, %rbx     # len = 3
+	irmovq $1, %r8      # for len--
+	irmovq $8, %r9      # for pointers
+	irmovq $0, %r10		# to compare len
+	call copy_block		# copy_block(*src, *dest, 2)
+	ret
+
+# copy_block(*src, *dest, 2)
+copy_block:
+	xorq %rax, %rax		# set rax = 0, (result = 0)
+	rrmovq %rbx, %rcx
+	jmp loop
+
+loop:
+	subq %r10, %rcx
+	je end				# if len = 0
+	mrmovq 0(%rdi), %rdx	# val = *rdi
+	addq %r9, %rdi		# src++
+	rmmovq %rdx, (%rsi)		# *dest = val
+	addq %r9, %rsi		# dest++
+	xorq %rdx, %rax		# for checksum
+	subq %r8, %rcx		# len--
+	jmp loop
+
+end:
+	ret					
+
+# Stack starts here and grows to lower addresses
+	.pos 0x200
+stack:

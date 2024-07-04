@@ -1,0 +1,3 @@
+Todo el código propuesto como solución al trabajo es autoría de los
+integrantes, y ha sido escrito sin leer código assembly generado
+automáticamente ni fuentes de terceros.

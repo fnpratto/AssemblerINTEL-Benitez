@@ -1,0 +1,23 @@
+Algoritmo de Dijkstra usando Matriz de Adyacencia:
+
+1. Empiezo con un vector Shortest Path vacio
+2. Tengo un vector distancias, donde todas las distancias son infinito salvo el vertice fuente
+3 Repetir hasta que se hayan procesado todos los vertices:
+    3.1 Elegir el vertice U que no este en SPT que tenga distancia minima -> Loopear sobre el vector distancia y elegir el minimo que no este en SPT.
+    3.2 Agregar el vertice U al SPT
+    3.3 Loopear sobre los vertices adyacentes a U
+        3.3.1 Para el vertice adyacente V, si V no esta en SPT y dist(v) > dist(u) + dist(u-v) entonces actualizo dist(v) = dist(u) + dist(u-v)
+
+
+
+cantVerticesAgregados dq 0
+matrizAdy  dw 0,1,0,0,1
+           dw 1,0,0,0,0
+           etc..
+
+dist       dw 0,INT_MAX, INT_MAX, INT_MAX   donde dist[i] es la distancia al vertice i.
+
+
+
+
+
