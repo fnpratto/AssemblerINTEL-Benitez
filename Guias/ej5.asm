@@ -25,6 +25,7 @@
     add     rsp,8
 %endmacro
 
+
 global main
 extern puts
 extern scanf
@@ -35,17 +36,22 @@ section     .data
     vecNum		  dw  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
     msgMaximo     db  "El maximo es: ",0
     msgMinimo     db  "El minimo es:",0
-    msgPromedio   db  10, "El promedio es: ",0
+    msgPromedio   db  "El promedio es: ",0
     cantidad      dq  20
-    formatoNumero db " %i", 0
-    formatoPromedio db "%d", 0
+    formatoNumero db " %i", 10,0
+    formatoPromedio db "%d",10, 0
+    formatoMinMax db "%hd",10, 0
 section     .bss  
-    maximo                 resb 4  
-    minimo                 resb 4
+    maximo                 resb 2  
+    minimo                 resb 2
     promedio               resb 4
 
 section     .text
 main:
+    mov word [maximo] , 0
+    mov ax, [vecNum]
+    mov [minimo] , ax
+
     mov rcx, 0
     mov rax, 0 ; suma de todos
     mov rbx, 0 ; iterador
@@ -56,10 +62,27 @@ iterar_vector:
     inc rbx
     add ax, cx
     mov [promedio], ax
-
+actualizar_max:
+    cmp cx, [maximo]
+    jg actualizar_maximo
+actualizar_min:
+    cmp cx, [minimo]
+    jl actualizar_minimo
+fin_loop:
     cmp rbx, 20
     je calcular_promedio
     jmp iterar_vector
+
+
+
+
+actualizar_maximo:
+    mov [maximo], cx
+    jmp actualizar_min
+
+actualizar_minimo:  
+    mov [minimo], cx
+    jmp fin_loop
 
 calcular_promedio:
     mov ax, [promedio]
@@ -76,5 +99,19 @@ imprimir_resultados:
 
     mov rdi , formatoPromedio
     mov rsi, [promedio]
+    mPrintf
+
+    mov rdi, msgMaximo
+    mPuts
+
+    mov rdi , formatoMinMax 
+    mov rsi, [maximo]
+    mPrintf
+
+    mov rdi, msgMinimo
+    mPuts
+
+    mov rdi , formatoMinMax
+    mov rsi, [minimo]
     mPrintf
 ret
