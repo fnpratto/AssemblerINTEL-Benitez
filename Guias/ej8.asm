@@ -27,12 +27,13 @@ extern gets
 extern printf
 
 section     .data
-    matriz dw 01,02,03,05 ; long es 48 bits 6 bytes
-		   dw 06,11,08,06
-		   dw 11,12,21,08
+    matriz dw 01,02,03,01 ; long es 48 bits 6 bytes
+		   dw 06,11,01,06
+		   dw 11,01,21,08
+           dw 01,12,21,08
 
     sumaTotal    dw  0
-    longFila     dw 6
+    longFila     dw 8
     longElemento dw 2
     msgSuma     db "La suma da : %hi",10,0 
 
@@ -42,8 +43,8 @@ section     .bss
 
 section     .text
 main:
-    mov word[posx],0
-    mov word[posy],0 
+    mov word[posx],3
+    mov word[posy],0
 
     xor rax, rax    
     xor rcx, rcx 
@@ -63,12 +64,11 @@ sumar_diagonal:
     add r9w,r8w
     mov [sumaTotal], r9w
     
-
-    add word[posx],1 
-    add word[posy],1 
+    dec word[posx]
+    inc word[posy]
 
     mov ax, [posx]
-    cmp ax, 3 
+    cmp ax, -1 
     je fin
     jmp sumar_diagonal
 

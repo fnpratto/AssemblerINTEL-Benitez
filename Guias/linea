@@ -1,0 +1,5 @@
+nasm -f elf64 ej5Float.asm -o main.o
+
+gcc main.o -o juego.out -no-pie -z noexecstack
+
+./juego.out

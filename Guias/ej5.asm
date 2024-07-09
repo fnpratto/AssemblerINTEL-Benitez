@@ -33,7 +33,7 @@ extern gets
 extern printf
 
 section     .data
-    vecNum		  dw  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
+    vecNum		  dw  2,2,2,2,2,2,2,2,2,2,2,5,2,2,3,2,2,2,2,2
     msgMaximo     db  "El maximo es: ",0
     msgMinimo     db  "El minimo es:",0
     msgPromedio   db  "El promedio es: ",0
