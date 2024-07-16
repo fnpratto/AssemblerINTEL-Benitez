@@ -1,11 +1,10 @@
-;15.	Se lee de un archivo una serie de números en formato carácter de 3 bytes.
+;15. Se lee de un archivo una serie de números en formato carácter de 3 bytes.
 ; Se pide realizar un programa que realice la sumatoria de esos números e
 ; informe el resultado por pantalla, 
 ;indicando además la cantidad de números válidos e inválidos leídos del archivo.
 
 section .data
     filename db 'number.txt', 0
-    format db "%q", 0
     modo db "r",0
     validMsg db "Numeros validos: %li", 10, 0
     invalidMsg db "Numeros Invalidos : %li", 10, 0

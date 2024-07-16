@@ -19,6 +19,7 @@ section .data
     formatWins db "Wins: %d", 10, 0
     formatLosses db "Losses: %d", 10, 0
     formatDifferential db "Point Differential: %d", 10, 0
+    modo db "r", 0 
     buffer db 20, 0  ; Buffer for team names
     maxWins dd 0
     maxDifferential dd 0
@@ -38,8 +39,6 @@ extern fopen, fread, fclose, printf
 global main
 
 %macro mPrintf 1
-    sub rsp, 8
-    mov rdi, %1
     mov rax, 0
     call printf
     add rsp, 8
@@ -47,11 +46,13 @@ global main
 
 main:
     ; Open file
-    lea rdi, [filename]
-    mov rsi, 0  ; "r" for reading
+    mov rdi, [filename]
+    mov rsi, [modo]  ; "r" for reading
+    sub rsp 8
     call fopen
-    test rax, rax
-    jz end  ; If fopen failed, exit
+    add rsp 8   
+    cmp rax,0
+    je end  ; If fopen failed, exit
     mov rbx, rax  ; Save file pointer
 
 read_loop:
