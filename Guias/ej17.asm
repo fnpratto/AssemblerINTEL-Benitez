@@ -1,4 +1,5 @@
-;17.	La liga de basquetball de Villa Tachito desea tener un programa para determinar quién fue el ganador del torneo anual de clubes.  Para ello cuenta con un archivo que contiene:
+;17.	La liga de basquetball de Villa Tachito desea tener un programa para determinar quién fue el 
+;ganador del torneo anual de clubes.  Para ello cuenta con un archivo que contiene:
 ;•	Nombre del equipo: 20 caracteres alfanuméricos
 ;•	Resultados: BPF S/S de 16 bits
 ;•	Tantos a favor: Empaquetado de 2 bytes
@@ -20,17 +21,17 @@ section .data
     formatDifferential db "Point Differential: %d", 10, 0
     buffer db 20, 0  ; Buffer for team names
     maxWins dd 0
-    champion db 20 dup(0)
     maxDifferential dd 0
 
 section .bss
-    tempName resb 20
-    results resw 1
-    pointsFor resw 1
-    pointsAgainst resw 1
-    wins resd 1
-    losses resd 1
-    differential resd 1
+    nombreDelEquipo resb 20
+    resultados resw 1
+    tantosFavor resw 1
+    tantosEnContra resw 1
+    partidosGanados resd 1
+    partidosPerdidos resd 1
+    diferencia resd 1
+    campeon resb 20
 
 section .text
 extern fopen, fread, fclose, printf

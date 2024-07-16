@@ -7,7 +7,7 @@
 section .data
     NUM dw 0b1001001100110101  ; Example 16-bit number
     format db "Reversed bits: %s", 10, 0
-    buffer db 17 dup(0)  ; Buffer to store binary string (16 bits + null terminator)
+    buffer db 17 ; Buffer to store binary string (16 bits + null terminator)
 
 section .bss
 
@@ -17,8 +17,6 @@ extern printf
 
 %macro mPrintf 1
     sub rsp, 8
-    mov rdi, %1
-    mov rax, 0
     call printf
     add rsp, 8
 %endmacro
@@ -28,7 +26,7 @@ main:
     mov ax, [NUM]
 
     ; Reverse the bits
-    mov cx, 16
+    mov si, 16
     xor bx, bx  ; Clear bx to store the reversed bits
 
 reverse_bits:
