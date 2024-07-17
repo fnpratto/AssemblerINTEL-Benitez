@@ -1,10 +1,19 @@
-;20.	Se dispone de una matriz C que representa un calendario de actividades de una persona. La matriz C está formada por 7 columnas (que corresponden a los días de la semana) y por 6 filas (que corresponden a las semanas que puede tener como máximo un mes en un calendario). Cada elemento de la matriz tiene una longitud de 200 caracteres que a las actividades a realizar ese día (como mucho se podrán poner 10 actividades). 
-;Además se dispone de un archivo de entrada llamado CALEN.DAT para cargar el contenido de los vectores de la matriz C con la siguiente información:
+;20. Se dispone de una matriz C que representa un calendario de actividades de una persona. 
+;La matriz C está formada por 7 columnas (que corresponden a los días de la semana) 
+;y por 6 filas (que corresponden a las semanas que puede tener como máximo un mes en un calendario). 
+;Cada elemento de la matriz tiene una longitud de 200 caracteres que a las actividades a realizar ese día 
+;(como mucho se podrán poner 10 actividades). 
+;Además se dispone de un archivo de entrada llamado CALEN.DAT 
+;para cargar el contenido de los vectores de la matriz C con la siguiente información:
 ;•	Día de la semana: Carácter de 2 bytes (DO, LU, MA, MI, JU, VI, SA)
-;•	Semana: Binario de 1 byte (1..6)
+;•	Semana: Binario de 1 byte (0..5)
 ;•	Actividad: Caracteres de longitud 20 con la descripción.
-;Como la información leída del archivo puede ser errónea, se dispone de una rutina interna llamada VALCAL para su validación. La rutina recibirá como parámetros el registro de entrada y un 1 byte en donde devolverá una ‘S’ si el registro es válido, o en caso contrario una ‘N’. Se deberá validar el Día de la semana y la Semana.
-;Se pide realizar un programa assembler Intel x86 que cargue la matriz C con la información del archivo de entrada previamente validada. Luego se solicita listar todas las actividades de todas las semanas del día almacenado en DiaIng	DD	XX.
+;Como la información leída del archivo puede ser errónea, se dispone de una rutina interna llamada VALCAL 
+;para su validación. La rutina recibirá como parámetros el registro de entrada y un 1 byte en donde devolverá una ‘S’ 
+;si el registro es válido, o en caso contrario una ‘N’. Se deberá validar el Día de la semana y la Semana.
+;Se pide realizar un programa assembler Intel x86 que cargue la matriz C con la información del archivo
+; de entrada previamente validada. Luego se solicita listar todas las actividades de todas las semanas 
+;del día almacenado en DiaIng	DD	XX.
 
 section .data
     filename db 'CALEN.DAT', 0

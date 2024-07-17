@@ -14,110 +14,160 @@
 
 
 section .data
-    filename db 'teams.dat', 0
+    filename db 'team.dat', 0
     formatTeam db "Team: %s", 10, 0
-    formatWins db "Wins: %d", 10, 0
-    formatLosses db "Losses: %d", 10, 0
-    formatDifferential db "Point Differential: %d", 10, 0
+    formatWins db "Wins: %hi", 10, 0
+    formatLosses db "Losses: %hi", 10, 0
+    formatDifferential db "Point Differential: %hi", 10, 0
+    formatNumber db "%hi", 10, 0 
+    formatNumberLong db "%li%", 10, 0
     modo db "r", 0 
-    buffer db 20, 0  ; Buffer for team names
     maxWins dd 0
     maxDifferential dd 0
+    errorOpenMsg db "Error opening file", 0
+    nombreEquipoAux         db  "********************",0
+    registerFile:
+      nombreDelEquipo  times   20                    db ' '
+      resultados                                     dw ' '
+      tantosFavor                                    dw ' '
+      tantosEnContra                                 dw ' '    ;Como es un BPF s/signo no haces falta que lo valide. Siempre sera Positivo ó 0 (Cero)
+      barraN                                         db ' '
 
 section .bss
-    nombreDelEquipo resb 20
-    resultados resw 1
-    tantosFavor resw 1
-    tantosEnContra resw 1
     partidosGanados resd 1
     partidosPerdidos resd 1
     diferencia resd 1
     campeon resb 20
+    idArchivo resq 1
 
 section .text
-extern fopen, fread, fclose, printf
+extern fopen, fread, fclose, printf ,fgets, gets , atoi, strtoll, puts
 global main
 
-%macro mPrintf 1
-    mov rax, 0
+%macro mFread 0
+    sub rsp, 8
+    call fread
+    add rsp, 8
+%endmacro
+
+%macro mPrintf 0
+    sub rsp, 8
     call printf
+    add rsp, 8
+%endmacro
+
+%macro mFopen 0
+    sub rsp, 8
+    call fopen
+    add rsp, 8 
+%endmacro
+
+%macro mgets 0
+    sub rsp, 8
+    call fgets
+    add rsp, 8
+%endmacro
+
+%macro mFclose 0
+    sub rsp, 8
+    call fclose
     add rsp, 8
 %endmacro
 
 main:
     ; Open file
-    mov rdi, [filename]
-    mov rsi, [modo]  ; "r" for reading
-    sub rsp 8
-    call fopen
-    add rsp 8   
+    lea rdi, [filename]
+    mov rsi, modo  ; "r" for reading
+    mFopen   
     cmp rax,0
-    je end  ; If fopen failed, exit
-    mov rbx, rax  ; Save file pointer
+    jle errorOpen  ; If fopen failed, exit
+    mov qword[idArchivo], rax  ; Save file pointer
 
 read_loop:
-    ; Read team name
-    lea rdi, [tempName]
-    mov rsi, 1
-    mov rdx, 20
-    call fread
-    test rax, rax
-    jz close_file  ; If fread failed or EOF, exit loop
+readRegister:
+    mov     rdi, registerFile   ;Param 1: direccion de area de memoria donde se copiaran los datos
+    mov     rsi, 27              ;Param 2: longitud del registro completo
+    mov     rdx, 1               ;Param 3: cant de registros
+    mov     rcx, [idArchivo]    ;Param 4: el handle del archivo a leer para completar el registro
+    sub     rsp, 8
+    call    fread
+    add     rsp, 8
 
-    ; Read results
-    lea rdi, [results]
-    mov rsi, 1
-    mov rdx, 2
-    call fread
-    test rax, rax
-    jz close_file  ; If fread failed or EOF, exit loop
+    mov rsi, rax
+    sub rsp, 8
+    call puts
+    add rsp,8
 
-    ; Read points for
-    lea rdi, [pointsFor]
-    mov rsi, 1
-    mov rdx, 2
-    call fread
-    test rax, rax
-    jz close_file  ; If fread failed or EOF, exit loop
+    cmp     rax, 0
+    jle     close_file
 
-    ; Read points against
-    lea rdi, [pointsAgainst]
-    mov rsi, 1
-    mov rdx, 2
-    call fread
-    test rax, rax
-    jz close_file  ; If fread failed or EOF, exit loop
 
-    ; Calculate wins and losses
-    movzx eax, word [results]
-    xor ecx, ecx
-    xor edx, edx
+    ; Add a null terminator to the team name string
+
+validar_campos:
+    mov     rcx, 20
+    mov     rsi, nombreDelEquipo
+    mov     rdi, nombreEquipoAux
+    rep movsb
+    
+    mov rdi, formatTeam
+    mov rsi, nombreEquipoAux
+    mPrintf 
+
+    mov rax, [resultados]
+
+    ; Print the number of wins
+    mov rdi, formatWins
+    mov rsi, [resultados]
+    mPrintf 
+
+    ; Print the number of losses
+    mov rdi, formatLosses; Total games
+    mov rsi, [tantosFavor]
+    mPrintf 
+
+    ; Print the point differential
+    mov rdi, formatDifferential
+    mov rsi, [tantosEnContra]
+    mPrintf 
 
     ; Count wins and losses
-    mov ebx, 16
+    mov rbx, 16 ; contador
+    mov rdi, 0
+    mov r9,0
+
+
 calc_wins_losses:
-    shr ax, 1
-    jc win
-    inc edx  ; Increment losses
+    mov rax,[resultados+rdi]
+    cmp rax, 1
+    je win
+    jne loss
+    inc rdi  ; Increment losses
     jmp check_loop
 win:
-    inc ecx  ; Increment wins
-check_loop:
-    dec ebx
-    jnz calc_wins_losses
+    mov r9, [partidosGanados]
+    inc r9
+    mov [partidosGanados],r9  ; Increment wins
+    jmp check_loop
 
-    ; Store wins and losses
-    mov [wins], ecx
-    mov [losses], edx
+loss:
+    mov r9, [partidosPerdidos]
+    inc r9
+    mov [partidosPerdidos],r9  ; Increment wins
+check_loop:
+    dec rbx
+    cmp rbx, 0
+    jne calc_wins_losses
+
 
     ; Calculate point differential
-    movzx eax, word [pointsFor]
-    movzx ebx, word [pointsAgainst]
-    sub eax, ebx
-    mov [differential], eax
+    movzx rax, word [tantosFavor]
+    movzx rbx, word [tantosEnContra]
+    sub rax, rbx
+    mov [diferencia], rax
 
     ; Check if this team has the most wins or best differential in case of a tie
-    mov eax, [wins]
+    mov eax, [partidosGanados]
     mov ebx, [maxWins]
     cmp eax, ebx
     jg update_champion
@@ -127,16 +177,14 @@ check_loop:
 update_champion:
     ; Update the champion data
     mov [maxWins], eax
-    lea rsi, [tempName]
-    lea rdi, [champion]
-    mov rcx, 20
-    rep movsb
-    mov eax, [differential]
+    mov rsi, [nombreDelEquipo]
+    mov [campeon], rsi
+    mov eax, [diferencia]
     mov [maxDifferential], eax
     jmp read_loop
 
 check_differential:
-    mov eax, [differential]
+    mov eax, [diferencia]
     mov ebx, [maxDifferential]
     cmp eax, ebx
     jg update_champion
@@ -144,31 +192,36 @@ check_differential:
 
 close_file:
     ; Close the file
-    mov rdi, rbx
-    call fclose
+    mov rdi, [idArchivo]
+    mFclose
 
     ; Print the champion's name
-    lea rdi, [formatTeam]
-    lea rsi, [champion]
-    mPrintf rdi
+    mov rdi, formatTeam
+    mov rsi, campeon
+    mPrintf 
 
     ; Print the number of wins
-    lea rdi, [formatWins]
+    mov rdi, formatWins
     mov esi, [maxWins]
-    mPrintf rdi
+    mPrintf 
 
     ; Print the number of losses
-    lea rdi, [formatLosses]
+    mov rdi, formatLosses
     mov esi, 16  ; Total games
     sub esi, [maxWins]
-    mPrintf rdi
+    mPrintf 
 
     ; Print the point differential
-    lea rdi, [formatDifferential]
+    mov rdi, formatDifferential
     mov esi, [maxDifferential]
-    mPrintf rdi
+    mPrintf 
 
 end:
     ; Exit program
     mov eax, 0
+    ret
+
+errorOpen:
+    lea rdi, [errorOpenMsg]
+    mPrintf
     ret
