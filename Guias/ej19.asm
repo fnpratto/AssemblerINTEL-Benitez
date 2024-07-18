@@ -1,4 +1,5 @@
-;19.	Se cuenta con una matriz (M) de 20x20 cuyos elementos son BPFC/S de 16 bits y un archivo (carbina.dat) cuyos registros están conformados por los siguientes campos:
+;19.Se cuenta con una matriz (M) de 20x20 cuyos elementos son BPFC/S de 16 bits y un archivo 
+;(carbina.dat) cuyos registros están conformados por los siguientes campos:
 ;	• Cadena de 16 bytes de caracteres ASCII que representa un BPFc/s de 16 bits
 ;	• BPF s/s de 8 bits que indica el número de fila de M
 ;	• BPF s/s de 8 bits que indica el número de columna de M

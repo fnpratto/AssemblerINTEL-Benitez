@@ -12,11 +12,15 @@
 ;Si el bit está en 1 significa que el equipo ganó ese partido, 
 ;si está en 0 significa que lo perdió.
 
+define CANTPARTIDOS 2
+
 
 section .data
     filename db 'team.dat', 0
     formatTeam db "Team: %s", 10, 0
-    formatWins db "Wins: %hi", 10, 0
+    formatWins db "Wins: %s", 10, 0
+    formatWinConvert db "Wins: %d%d", 10, 0
+    formatTantos db "Tantos: %hi", 10, 0
     formatLosses db "Losses: %hi", 10, 0
     formatDifferential db "Point Differential: %hi", 10, 0
     formatNumber db "%hi", 10, 0 
@@ -26,11 +30,12 @@ section .data
     maxDifferential dd 0
     errorOpenMsg db "Error opening file", 0
     nombreEquipoAux         db  "********************",0
+    resultadosAux           db  "****************",0
     registerFile:
       nombreDelEquipo  times   20                    db ' '
-      resultados                                     dw ' '
-      tantosFavor                                    dw ' '
-      tantosEnContra                                 dw ' '    ;Como es un BPF s/signo no haces falta que lo valide. Siempre sera Positivo ó 0 (Cero)
+      resultados       times   CANTPARTIDOS                   db ' '
+      tantosFavor       times 2                      db ' '
+      tantosEnContra    times 2                      db ' '    ;Como es un BPF s/signo no haces falta que lo valide. Siempre sera Positivo ó 0 (Cero)
       barraN                                         db ' '
 
 section .bss
@@ -86,17 +91,12 @@ main:
 read_loop:
 readRegister:
     mov     rdi, registerFile   ;Param 1: direccion de area de memoria donde se copiaran los datos
-    mov     rsi, 27              ;Param 2: longitud del registro completo
-    mov     rdx, 1               ;Param 3: cant de registros
+    mov     rsi, 41             ;Param 2: longitud del registro completo
+    mov     rdx, 1              ;Param 3: cant de registros
     mov     rcx, [idArchivo]    ;Param 4: el handle del archivo a leer para completar el registro
     sub     rsp, 8
     call    fread
     add     rsp, 8
-
-    mov rsi, rax
-    sub rsp, 8
-    call puts
-    add rsp,8
 
     cmp     rax, 0
     jle     close_file
@@ -114,22 +114,43 @@ validar_campos:
     mov rsi, nombreEquipoAux
     mPrintf 
 
-    mov rax, [resultados]
+    mov     rcx, 16
+    mov     rsi, resultados
+    mov     rdi, resultadosAux
+    rep movsb
 
     ; Print the number of wins
     mov rdi, formatWins
-    mov rsi, [resultados]
+    mov rsi, resultados
     mPrintf 
 
     ; Print the number of losses
-    mov rdi, formatLosses; Total games
+    mov rdi, formatTantos; Total games
     mov rsi, [tantosFavor]
     mPrintf 
 
     ; Print the point differential
-    mov rdi, formatDifferential
+    mov rdi, formatTantos
     mov rsi, [tantosEnContra]
     mPrintf 
+
+
+    mov rax, [resultados]
+    sub rsp,8
+    call strtoll
+    add rsp,8
+
+
+
+
+
+
+
+
+
+
+
+
 
     ; Count wins and losses
     mov rbx, 16 ; contador
