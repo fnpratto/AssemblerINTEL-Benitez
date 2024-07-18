@@ -12,7 +12,7 @@
 ;Si el bit está en 1 significa que el equipo ganó ese partido, 
 ;si está en 0 significa que lo perdió.
 
-define CANTPARTIDOS 2
+%define CANTPARTIDOS 2
 
 
 section .data
@@ -20,7 +20,7 @@ section .data
     formatTeam db "Team: %s", 10, 0
     formatWins db "Wins: %s", 10, 0
     formatWinConvert db "Wins: %d%d", 10, 0
-    formatTantos db "Tantos: %hi", 10, 0
+    formatTantos db "Tantos: %i", 10, 0
     formatLosses db "Losses: %hi", 10, 0
     formatDifferential db "Point Differential: %hi", 10, 0
     formatNumber db "%hi", 10, 0 
@@ -30,12 +30,12 @@ section .data
     maxDifferential dd 0
     errorOpenMsg db "Error opening file", 0
     nombreEquipoAux         db  "********************",0
-    resultadosAux           db  "****************",0
+    resultadosAux           db  "**",0
     registerFile:
       nombreDelEquipo  times   20                    db ' '
       resultados       times   CANTPARTIDOS                   db ' '
-      tantosFavor       times 2                      db ' '
-      tantosEnContra    times 2                      db ' '    ;Como es un BPF s/signo no haces falta que lo valide. Siempre sera Positivo ó 0 (Cero)
+      tantosFavor                             dw 0
+      tantosEnContra                          dw 0    ;Como es un BPF s/signo no haces falta que lo valide. Siempre sera Positivo ó 0 (Cero)
       barraN                                         db ' '
 
 section .bss
@@ -114,33 +114,39 @@ validar_campos:
     mov rsi, nombreEquipoAux
     mPrintf 
 
-    mov     rcx, 16
+    mov     rcx, 2
     mov     rsi, resultados
     mov     rdi, resultadosAux
     rep movsb
 
     ; Print the number of wins
     mov rdi, formatWins
-    mov rsi, resultados
+    mov rsi, resultadosAux
     mPrintf 
+
+    lea rax, [tantosFavor]
+    sub rsp,8
+    call atoi
+    add rsp,8
+
+    mov [tantosFavor], rax
 
     ; Print the number of losses
     mov rdi, formatTantos; Total games
     mov rsi, [tantosFavor]
     mPrintf 
 
+    lea rax, [tantosEnContra]
+    sub rsp,8
+    call atoi
+    add rsp,8
+
+    mov [tantosEnContra], rax
+
     ; Print the point differential
     mov rdi, formatTantos
     mov rsi, [tantosEnContra]
     mPrintf 
-
-
-    mov rax, [resultados]
-    sub rsp,8
-    call strtoll
-    add rsp,8
-
-
 
 
 
