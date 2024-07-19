@@ -12,29 +12,52 @@
     add rsp,8
 %endmacro
 
-%macro myscanf 0
-    sub rsp, 8
-     call scanf
-    add rsp,8
+%macro mScanf 0
+    sub     rsp,8
+    call    scanf
+    add     rsp,8
 %endmacro
 
-%macro mprintf 0
+%macro myprintf 0
     sub rsp, 8
      call printf
     add rsp,8
 %endmacro
 
+%macro myputs 0
+    sub rsp, 8
+     call puts
+    add rsp,8
+%endmacro
 
 
-extern fopen, scanf,  printf
+%macro mygetchar 0
+    sub     rsp,8
+    call    getchar
+    add     rsp,8
+%endmacro
+
+
+
+extern fopen, scanf,  printf,puts , getchar
 global main
 
 section .data
-    formato_orientacion db "%c" ,0
-    formato_movimiento_zorro db "Ingrese movimiento zorro: %c", 0
-    formato_mov_invalido db "Movimiento no valido",0
-    formato_preguntar_col db "Cual es la columna de la oca que queres mover: %i"
-    formato_preguntar_fil db "Cual es la fila de la oca que queres mover: %i"
+    formato_pregunta db "Ingrese un char para la orientacion para el tablero, si no es valido se dejara el default: ",0
+    formato_orientacion db " %c", 0
+    formato_caracter db " %c", 0
+    formato_movimiento_zorro db "Ingrese movimiento zorro: ", 0
+    formato_mov_invalido db "Movimiento no valido",10, 0
+    formato_preguntar_col db "Cual es la columna de la oca que queres mover: ",0
+    formato_int db " %d",0
+    formato_preguntar_fil db "Cual es la fila de la oca que queres mover: ",0
+    formato_oca_no_encontrada db "Oca no fue encontrada, ingresar devuelta otras coordenadas: ",0
+    formato_movimiento_oca db "Ingrese movimiento de la oca:  %c",0
+    dummy               db " %c", 0
+    mensaje_error db "No se ingreso un numero int ", 10, 0
+    archivo db "ocasyzorro.txt"
+    iterador_matriz dq 0
+    long_fila dd 7
 
 
 section .bss
@@ -44,12 +67,14 @@ section .bss
     cant_ocas_comidas   resq 1
 
     ;ocas
-    tope                resq 1
-    vector_ocas         resq 12 ; TODO AUMENTAR X2
+    tope_ocas                resq 1
+    vector_ocas         times 12 resq 1 ; 4 bytes para la fil y otro para la col 
     movimiento_invalido resb 1
 
     ;tablero
     orientacion resb 1 
+    matriz times 49 resb 1
+    casillero       resb 1
 
     ;juego
     movimiento          resb 1
@@ -57,17 +82,17 @@ section .bss
     aux_col resq 1
     aux_fil resq 1
     aux_indice resq 1
+    iterador_matriz resq 1
 
 
 
 section .text
 
 main:
-inicializar:
-
-    myfopen
-    cmp rax, 0
-    jne loop_partida
+inicializar_con_archivo:
+    ;myfopen TODO
+    ;cmp rax, 0
+    ;jne loop_partida
 
 inicializo_zorro:
 
@@ -76,15 +101,17 @@ inicializo_zorro:
     mov qword[cant_ocas_comidas], 0
 
 inicializo_ocas:
-    mov qword[tope], 12
+    mov qword[tope_ocas], 12
     
-    ;pregunto orientacion
 pregunto_orientacion:
 
-    xor rax,rax
-    mov rsi , formato_orientacion
-    mov rdi,  orientacion
-    myscanf
+    lea rdi, [formato_pregunta]
+    myprintf
+
+    mov rdi , formato_orientacion
+    mov rsi,  orientacion
+    mScanf
+
     cmp rax, 0 ; valido que tomo un char
     je pregunto_orientacion 
 
@@ -148,17 +175,19 @@ comprobar_condiciones_de_inicializacion:
 
 inicializar_matriz:
 
-
 loop_partida:
 
 preguntar_zorro:
+    mov rdi, formato_movimiento_zorro
+    myprintf
+
     ; empieza el zorro
-    mov rsi, formato_movimiento_zorro
-    mov rdi , movimiento
-    myscanf
+    mov rdi, formato_caracter
+    mov rsi , movimiento
+    mScanf
 
     cmp rax, 0 ; valido char
-    jmp preguntar_zorro
+    je preguntar_zorro
 
 moverZ:
     cmp byte [movimiento], 68 ;D
@@ -171,8 +200,8 @@ moverZ:
     je mover_abajo
 
 ingreso_movimiento_invalido:
-    mov rsi, formato_mov_invalido
-    mprintf
+    mov rdi, formato_mov_invalido
+    myprintf
     jmp  preguntar_zorro
 
 mover_derecha:
@@ -252,21 +281,33 @@ preguntar_ocas:
 
 preguntar_col_indice:
     mov rdi, formato_preguntar_col
-    mov rsi, [aux_col]
-    mscanf
+    myprintf
 
+    xor rsi,rsi
+    mov rdi, formato_int
+    mov rsi, aux_col
+    mScanf
     cmp rax, 0
-    je preguntar_col_indice
-
+    je validar_entero
 preguntar_fil_indice:
     mov rdi, formato_preguntar_fil
-    mov rsi , [aux_fil]
-    mscanf
+    myprintf
+    mov rdi, formato_int
+    mov rsi , aux_fil
+    mScanf
     cmp rax, 0
-    je preguntar_fil_indice
+    je validar_entero
+    jmp buscar_ocas
+
+validar_entero:
+    lea rdi, [rel mensaje_error]
+    myprintf
+    mov rdi, dummy
+    mScanf
+    jmp preguntar_col_indice
 
 buscar_ocas:
-mov rax, 0
+    mov rax, 0
     loop:
         cmp rax, [tope_ocas]
         jge oca_no_encontrada
@@ -276,117 +317,224 @@ mov rax, 0
         jne mover_siguiente_oca
         cmp r8, [aux_col]
         je oca_encontrada
-mover_siguiente_oca:
-        add rax, 2
-        jmp loop
+        mover_siguiente_oca:
+                add rax, 2
+                jmp loop
 
-oca_no_encontrada:
-    mov rdi, formato_oca_no_encontrada
-    mprintf
+    oca_no_encontrada:
+        mov rdi, formato_oca_no_encontrada
+        myprintf
 
-    jmp preguntar_ocas
+        jmp preguntar_ocas
 
-oca_encontrada:
-    mov [aux_indice], rax
+    oca_encontrada:
+        mov [aux_indice], rax
 
 mover_oca:
-preguntar_mov_oca:
-    ; empieza el zorro
-    mov rsi, formato_movimiento_oca
-    mov rdi , movimiento
-    myscanf
+    preguntar_mov_oca:
+        ; empieza el zorro
+        mov rsi, formato_movimiento_oca
+        mov rdi , movimiento
+        mScanf
 
-    cmp rax, 0 ; valido char
-    jmp preguntar_mov_oca
+        cmp rax, 0 ; valido char
+        jmp preguntar_mov_oca
 
-moverO:
-    cmp byte [movimiento], 68 ;D
-    je  mover_derecha
-    cmp byte [movimiento], 65 ;A
-    je  mover_izquierda
-    cmp byte [movimiento], 87 ;W
-    je mover_arriba
-    cmp byte [movimiento], 83 ;S
-    je mover_abajo
+    moverO:
+        cmp byte [movimiento], 68 ;D
+        je  mover_derecha_oca
+        cmp byte [movimiento], 65 ;A
+        je  mover_izquierda_oca
+        cmp byte [movimiento], 87 ;W
+        je mover_arriba_oca
+        cmp byte [movimiento], 83 ;S
+        je mover_abajo_oca
 
-ingreso_movimiento_invalido:
+    ingreso_movimiento_invalido_oca:
     mov rsi, formato_mov_invalido
-    mprintf
+    myprintf
     jmp  preguntar_mov_oca
 
-mover_derecha:
+mover_derecha_oca:
     mov r8, qword[fil]
     mov r9, qword[col]
     cmp r8 , 2           ; i 
-    jle verifico_borde_derecha
+    jle verifico_borde_derecha_oca
     cmp r8,6             ; i
-    jge verifico_borde_derecha
+    jge verifico_borde_derecha_oca
     cmp r9, 7            ; j
-    jg ingreso_movimiento_invalido
+    jg ingreso_movimiento_invalido_oca
     inc r9
     jmp verificar_estado_juego
 
-verifico_borde_derecha:
+verifico_borde_derecha_oca:
     cmp r9, 5
     jg movimiento_invalido
     inc r9
     jmp verificar_estado_juego
 
-mover_izquierda:
+mover_izquierda_oca:
     mov r8, qword[fil]
     mov r9, qword[col]
     cmp r8 , 2           ; i 
-    jle verifico_borde_izquierda
+    jle verifico_borde_izquierda_oca
     cmp r8,6             ; i
-    jge verifico_borde_izquierda
+    jge verifico_borde_izquierda_oca
     cmp r9, 1            ; j
-    jl ingreso_movimiento_invalido
+    jl ingreso_movimiento_invalido_oca
     dec r9
     jmp verificar_estado_juego
 
-verifico_borde_izquierda:
+verifico_borde_izquierda_oca:
     cmp r9, 3
-    jl ingreso_movimiento_invalido
+    jl ingreso_movimiento_invalido_oca
     dec r9
     jmp verificar_estado_juego
 
-mover_arriba:
+mover_arriba_oca:
     mov r8, qword[fil]
     mov r9, qword[col]
     cmp r9 , 2           ; i 
-    jle verifico_borde_arriba
+    jle verifico_borde_arriba_oca
     cmp r9, 6             ; i
-    jge verifico_borde_arriba
+    jge verifico_borde_arriba_oca
     cmp r8, 1            ; j
-    jl ingreso_movimiento_invalido
+    jl ingreso_movimiento_invalido_oca
     dec r8
     jmp verificar_estado_juego
 
-verifico_borde_arriba:
+verifico_borde_arriba_oca:
     cmp r8, 3
-    jle ingreso_movimiento_invalido
+    jle ingreso_movimiento_invalido_oca
     dec r8
     jmp verificar_estado_juego
 
-mover_abajo:
+mover_abajo_oca:
     mov r8, qword[fil]
     mov r9, qword[col]
     cmp r9 , 2           ; i 
-    jle verifico_borde_abajo
+    jle verifico_borde_abajo_oca
     cmp r9, 6             ; i
-    jge verifico_borde_abajo
+    jge verifico_borde_abajo_oca
     cmp r8, 7             ; j
-    jl ingreso_movimiento_invalido
+    jl ingreso_movimiento_invalido_oca
     inc r8
     jmp verificar_estado_juego
 
-verifico_borde_abajo:
+verifico_borde_abajo_oca:
     cmp r8, 5
-    jle ingreso_movimiento_invalido
+    jle ingreso_movimiento_invalido_oca
     inc r8
     jmp verificar_estado_juego
 
+
+verificar_estado_juego:
     ret
+
+
+imprimir_tablero:
+    llenar_matriz:
+        xor rcx, rcx
+        mov rcx, 49
+        mov qword [aux_fil], 0
+        mov qword [aux_col], 0
+        mov qword [iterador_matriz], 0
+
+        buscar_si_hay_algo_ahi:
+            mov word [casillero], 0
+        ;BUSCO ZORRO
+            xor r9,r9
+            mov r9, qword [fil]
+            cmp qword [aux_col], r9
+            jne buscar_siguiente_elemento0:
+            mov r9, qword[col]
+            cmp qword [aux_fil], r9
+            je rellenar_con_zorro
+
+        buscar_siguiente_elemento0:
+            xor rax,rax
+            loop_ocas_matriz:
+                cmp rax, [tope_ocas]
+                jge oca_no_en_casillero
+                mov r9, [vector_ocas+ rax] ; fil
+                mov r8, [vector_ocas+ rax+1] ; col
+                cmp r9, [aux_fil]
+                jne mover_siguiente_oca
+                cmp r8, [aux_col]
+                je oca_en_casillero
+                mover_siguiente_oca:
+                        add rax, 2
+                        jmp loop_ocas_matriz
+
+            oca_no_en_casillero:
+               jmp rellenar_vacio
+
+            oca_en_casillero:
+
+            rellenar_oca:
+                mov byte [casillero], 111; o
+                jmp ubicar_en_matriz
+            rellenar_zorro:
+                mov byte [casillero], 90 ; z
+                jmp ubicar_en_matriz
+            rellenar_vacio:
+                ;si esta dentro del tablero imprimo vacio
+                ;sino espacio
+                esta_dentro_tablero:
+                    mov rax, 0
+                    cmp dword [aux_fil], 1
+                    jl fuera_de_rango
+                    cmp dword [aux_fil], 7
+                    jg fuera_de_rango
+                    cmp dword [aux_col], 1
+                    jl fuera_de_rango
+                    cmp dword [aux_col], 7
+                    jg fuera_de_rango
+                    cmp dword [aux_col], 3
+                    jl chequear_esquinas
+                    cmp dword [aux_col], 5
+                    jg chequear_esquinas
+                    ret
+                chequear_esquinas:
+                    cmp dword [aux_fil], 3
+                    jl fuera_de_rango
+                    cmp dword [aux_fil], 5
+                    jg fuera_de_rango
+                    ret
+                fuera_de_rango:
+                    rellenar_fuera_de_tablero:
+                        mov byte [casillero], 32; espacio
+                        jmp ubicar_en_matriz
+   
+            rellenar_casillero_vacio:
+                mov byte [casillero], 45 ; -
+                jmp ubicar_en_matriz
+
+        
+        ubicar_en_matriz:
+            xor rbx,rbx
+            mov rbx, matriz
+            xor rdx,rdx
+            add qword [iterador_matriz], 1
+            
+            ;me muevo en la matriz
+            mov rdx, [aux_fil]
+            dec rdx
+            imul rdx, [long_fila]
+            mov rax, 0
+            add rax, rdx
+            mov rdx, [aux_col]
+            dec rdx
+            imul rdx, 1
+            add rax, rdx
+            add rbx, rax
+
+        escribir_en_matriz:
+            mov al, [casillero]
+            mov byte [rbx], al
+        
+        
+            
 
 
 
