@@ -1,0 +1,9 @@
+P,Objetoo,03
+S,Objeto2,04
+M,Objeto3,15
+P,Objeto1,01
+S,Objeto2,04
+M,Objeto3,15
+P,Objeto1,02
+S,Objeto2,04
+M,Objeto3,15 
