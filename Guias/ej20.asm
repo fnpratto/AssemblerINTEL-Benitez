@@ -13,11 +13,11 @@
 ;si el registro es válido, o en caso contrario una ‘N’. Se deberá validar el Día de la semana y la Semana.
 ;Se pide realizar un programa assembler Intel x86 que cargue la matriz C con la información del archivo
 ; de entrada previamente validada. Luego se solicita listar todas las actividades de todas las semanas 
-;del día almacenado en DiaIng	DD	XX.
+;del día almacenado en DiaIng   DD XX.
 
 section .data
     filename db 'CALEN.DAT', 0
-    formatActivity db '%s', 10, 0
+    formatActivity db "%s", 10, 0
     formatNoActivities db 'No activities for %s', 10, 0
     days db 'DO', 'LU', 'MA', 'MI', 'JU', 'VI', 'SA'
     DiaIng db 'LU', 0  ; Example input day for listing activities

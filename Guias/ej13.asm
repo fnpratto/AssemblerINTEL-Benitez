@@ -64,11 +64,11 @@ main:
     lea rcx, [mes]
     lea r8, word[year]
     call mSscanf
-    ; sscanf(DATE, date_format, &day, &month, &year);
+    ; sscanf(DATE, date_format,     &day, &month, &year);
 
 validarFecha:
     xor rax, rax
-    mov ax, [dia]
+    mov ax, [dia]                                                       
     cmp ax, 1
     jl printInvalid
     cmp ax, 31

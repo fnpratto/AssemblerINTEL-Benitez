@@ -18,14 +18,14 @@
 section .data
     filename db 'team.dat', 0
     formatTeam db "Team: %s", 10, 0
-    formatWins db "Wins: %s", 10, 0
+    formatWins db "Wins: %li", 10, 0
     formatWinConvert db "Wins: %d%d", 10, 0
-    formatTantos db "Tantos: %i", 10, 0
-    formatLosses db "Losses: %hi", 10, 0
+    formatTantos db "Tantos: %hi", 10, 0
+    formatLosses db "Losses: %li", 10, 0
     formatDifferential db "Point Differential: %hi", 10, 0
     formatNumber db "%hi", 10, 0 
     formatNumberLong db "%li%", 10, 0
-    modo db "r", 0 
+    modo db "rb", 0 
     maxWins dd 0
     maxDifferential dd 0
     errorOpenMsg db "Error opening file", 0
@@ -39,11 +39,12 @@ section .data
       barraN                                         db ' '
 
 section .bss
-    partidosGanados resd 1
-    partidosPerdidos resd 1
     diferencia resd 1
     campeon resb 20
     idArchivo resq 1
+
+    partidosGanados  resq 1
+    partidosPerdidos resq 1
 
 section .text
 extern fopen, fread, fclose, printf ,fgets, gets , atoi, strtoll, puts
@@ -91,7 +92,7 @@ main:
 read_loop:
 readRegister:
     mov     rdi, registerFile   ;Param 1: direccion de area de memoria donde se copiaran los datos
-    mov     rsi, 41             ;Param 2: longitud del registro completo
+    mov     rsi, 27             ;Param 2: longitud del registro completo
     mov     rdx, 1              ;Param 3: cant de registros
     mov     rcx, [idArchivo]    ;Param 4: el handle del archivo a leer para completar el registro
     sub     rsp, 8
@@ -100,8 +101,6 @@ readRegister:
 
     cmp     rax, 0
     jle     close_file
-
-
     ; Add a null terminator to the team name string
 
 validar_campos:
@@ -114,51 +113,51 @@ validar_campos:
     mov rsi, nombreEquipoAux
     mPrintf 
 
-    mov     rcx, 2
-    mov     rsi, resultados
-    mov     rdi, resultadosAux
-    rep movsb
+
+    movzx rax, word [resultados]
+    mov rbx, 16  ; Number of bits
+
+    mov qword[partidosGanados], 0
+    mov qword[partidosPerdidos], 0
+
+    count_results:
+
+        test rax, 1
+        jz punto_perdio
+        inc qword[partidosGanados]
+
+        jmp shift_bit
+
+    punto_perdio:
+        inc qword[partidosPerdidos]
+
+    shift_bit:
+        shr rax, 1
+        dec rbx
+        jnz count_results
 
     ; Print the number of wins
     mov rdi, formatWins
-    mov rsi, resultadosAux
+    mov rsi, qword[partidosGanados]
     mPrintf 
 
-    lea rax, [tantosFavor]
-    sub rsp,8
-    call atoi
-    add rsp,8
+    ; Print the number of losses
+    mov rdi, formatLosses
+    mov rsi, qword[partidosPerdidos]
+    mPrintf 
 
-    mov [tantosFavor], rax
 
     ; Print the number of losses
     mov rdi, formatTantos; Total games
     mov rsi, [tantosFavor]
     mPrintf 
 
-    lea rax, [tantosEnContra]
-    sub rsp,8
-    call atoi
-    add rsp,8
-
-    mov [tantosEnContra], rax
-
     ; Print the point differential
     mov rdi, formatTantos
     mov rsi, [tantosEnContra]
     mPrintf 
 
-
-
-
-
-
-
-
-
-
-
-    ; Count wins and losses
+   ; Count wins and losses
     mov rbx, 16 ; contador
     mov rdi, 0
     mov r9,0

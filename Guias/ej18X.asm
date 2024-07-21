@@ -2,18 +2,19 @@
 ;	STRING_A    	RESD  1
 ;	STRING_B   		RESD  1
 ;	CHAR    		RESB  1
-;Las variables STRING_A y STRING_B tienen la dirección de inicio de un string
-; (cadena de caracteres terminados con un byte x’00’) mientras que la variable CHAR contiene un 
+;Las variables STRING_A y STRING_B tienen la dirección de inicio de un string 
+;(cadena de caracteres terminados con un byte x’00’) mientras que la variable CHAR contiene un 
 ;caracter en codificación ASCII. Se pide:
 ;a.	Realizar una rutina interna que reciba como parámetros a los rótulos STRING_A y STRING_B y 
 ;devuelva un byte RESULT1 con una ‘S’ si los dos strings son iguales o una ‘N’ en caso contrario. 
 ;b.	Realizar una rutina interna que reciba como parámetros al rótulo STRING_A y CHAR y devuelva una 
 ;FULLWORD con la cantidad de ocurrencias del caracter CHAR dentro del string, en BPF c/s de 32 bits.
 
+
 section .data
     STRING_A db 'Hello, world!', 0
     STRING_B db 'Hello, world!', 0
-    CHAR db 'O'
+    CHAR db 'o'
     RESULT1 db 0
     COUNT resd 1
     FORMAT1 db 'Strings are: %c', 10, 0
@@ -26,10 +27,8 @@ section .text
 global main
 extern printf
 
-%macro mPrintf 1
+%macro mPrintf 0
     sub rsp, 8
-    mov rdi, %1
-    mov rax, 0
     call printf
     add rsp, 8
 %endmacro

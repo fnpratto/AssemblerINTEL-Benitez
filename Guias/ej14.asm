@@ -40,9 +40,8 @@ extern sscanf
 
 
 section .data
-    ; Example values for testing
-    hex1 dw 0x1234
-    hex2 dw 0x5678
+    DIR1 dw 1234    
+    DIR2 dw 5678     
     resultMsg db "Resultado: %hi", 0
 
 section .bss
@@ -50,27 +49,17 @@ section .bss
 
 section .text
 main:
-    ; Example addresses for testing
-    movzx ax, [hex1]
-    movzx bx, [hex2]
+    movzx rax, word[DIR1]
+    movzx rbx, word[DIR2]
 
-    ; Add the values
-    add ax, bx
-
-    ; Store the result
+    add rax, rbx
+    
     mov [RESULT], ax
 
     xor rsi,rsi
-    ; Print the result for verification
-    lea rdi, [resultMsg]
-    lea rsi, [RESULT]
-    mPrintf
-    
-    lea rdi, [RESULT]
-    movzx rax, word [rdi]
-    mov rsi, rax
+    mov rdi, resultMsg
+    mov rsi, [RESULT]
     mPrintf
 
-    ; Exit the program
     mov eax, 0
     ret

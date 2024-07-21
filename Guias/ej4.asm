@@ -64,7 +64,7 @@ inicializar_vector:
     lea    r9, [vectorNumero + r9]
     mov    [aux],r9
 
-    sub     rsp,8
+    sub    rsp,8
     mov    rdi, formato_numero
     lea    rsi, [r9]
     mScanf
