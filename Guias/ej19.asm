@@ -3,7 +3,10 @@
 ;	• Cadena de 16 bytes de caracteres ASCII que representa un BPFc/s de 16 bits
 ;	• BPF s/s de 8 bits que indica el número de fila de M
 ;	• BPF s/s de 8 bits que indica el número de columna de M
-;Se pide codificar un programa que lea los registros del archivo y complete la matriz con dicha información.  Como el contenido de los registros puede ser inválido deberá hacer uso de una rutina interna (VALREG) para validarlos (los registros inválidos serán descartados y se procederá a leer el siguiente).  Luego realizar la sumatoria de la diagonal secundaria e imprimir el resultado por pantalla.
+;Se pide codificar un programa que lea los registros del archivo y complete la matriz con dicha información.  
+;Como el contenido de los registros puede ser inválido deberá hacer uso de una rutina interna (VALREG) 
+;para validarlos (los registros inválidos serán descartados y se procederá a leer el siguiente).  
+;Luego realizar la sumatoria de la diagonal secundaria e imprimir el resultado por pantalla.
 ;Nota: Se deberá inicializar M con ceros por si no se lograra completar todos los elementos con la información provista en el archivo.
 
 section .data
@@ -19,63 +22,95 @@ section .text
 extern fopen, fread, fclose, printf
 global main
 
-%macro mPrintf 1
+%macro mPrintf 0
     sub rsp, 8
-    mov rdi, %1
-    mov rax, 0
     call printf
     add rsp, 8
 %endmacro
 
-VALREG:
-    ; Validate the record in the buffer
-    ; Assume buffer structure: [16-byte string][8-bit row][8-bit col]
-    ; Return ZF=0 if valid, ZF=1 if invalid
-    movzx eax, byte [buffer + 16]  ; Load row number
-    cmp eax, 20
-    ja .invalid
-    movzx eax, byte [buffer + 17]  ; Load column number
-    cmp eax, 20
-    ja .invalid
-    xor eax, eax
-    ret
-.invalid:
-    mov eax, 1
-    ret
-
 main:
     ; Open file
     lea rdi, [filename]
-    mov rsi, 0  ; "r" for reading
-    call fopen
-    test rax, rax
-    jz end  ; If fopen failed, exit
-    mov rbx, rax  ; Save file pointer
+    mov rsi, modo  ; "r" for reading
+    mFopen
+    cmp rax,0
+    jle errorOpen  ; If fopen failed, exit
+    mov qword[idArchivo], rax  ; Save file pointer
 
-read_loop:
-    ; Read a record from the file
-    lea rdi, [buffer]
-    mov rsi, 1
-    mov rdx, 18
-    call fread
-    test rax, rax
-    jz close_file  ; If fread failed or EOF, exit loop
+
+LeerRegistro:
+    mov     rdi, registro   ;Param 1: direccion de area de memoria donde se copiaran los datos
+    mov     rsi, 18         ;Param 2: longitud del registro completo
+    mov     rdx, 1               ;Param 3: cant de registros
+    mov     rcx, [idArchivo]    ;Param 4: el handle del archivo a leer para completar el registro
+    sub     rsp, 8
+    call    fread
+    add     rsp, 8
+
+    cmp     rax, 0
+    jle     close_file
 
     ; Validate the record
-    call VALREG
-    test eax, eax
-    jnz read_loop  ; If invalid, read next record
+    sub rsp,8
+    call VALCAL
+    add rsp, 8
 
-    ; Get row and column
-    movzx eax, byte [buffer + 16]
-    movzx ebx, byte [buffer + 17]
-    ; Convert 16-byte ASCII string to BPFC/S 16-bit integer
-    lea rdi, [buffer]
-    call atoi
-    ; Store the value in the matrix
-    mov [M + 2*(eax*20 + ebx)], ax
+    mov rcx, 20
+    mov rsi, actividad
+    mov rdi , auxactividad
+    rep movsb
 
-    jmp read_loop
+    mov rcx, 2
+    mov rsi, dia
+    mov rdi , auxdia
+    rep movsb
+
+    mov rdi, formatoActividad
+    mov rsi, auxdia
+    mov rdx, [semana]
+    mov rcx, auxactividad
+    mPrintf
+
+
+    cmp    byte[isValid],'N'
+    je     LeerRegistro
+
+actualizarMatriz:
+    ; Calculate the position in the matrix
+    mov rax, [numDia]
+    mov rdx, 140
+    mul rdx
+    mov [numDia],rax
+    mov rax, [auxSemana]
+    dec rax
+    mov rdx, 20
+    mul rdx
+
+
+    mov rdi, [numDia]
+    add rax, rdi
+    
+    ; Copy the activity to the matrix
+    mov rdi, [C + rax]
+    mov [actividad],rdi
+
+    mov rcx, 20
+    mov rsi, actividad
+    mov rdi , auxactividad
+    rep movsb
+
+    mov rcx, 2
+    mov rsi, dia
+    mov rdi , auxdia
+    rep movsb
+
+    mov rdi, formatoActividad
+    mov rsi, auxdia
+    mov rdx, [auxSemana]
+    mov rcx, auxactividad
+    mPrintf
+
+    jmp LeerRegistro
 
 close_file:
     ; Close the file
@@ -85,38 +120,55 @@ close_file:
     ; Calculate the sum of the secondary diagonal
     xor ecx, ecx  ; Clear sum
     mov edx, 19  ; Start with the last column of the first row
-calc_sum:
-    add cx, [M + 2*(ecx*20 + edx)]
-    dec edx
-    inc ecx
-    cmp ecx, 20
-    jne calc_sum
-
-    ; Store the result
-    mov [sum], ecx
-
-    ; Print the result
-    lea rdi, [formatResult]
-    mov esi, [sum]
-    mPrintf rdi
 
 end:
     ; Exit program
     mov eax, 0
     ret
 
-atoi:
-    ; Converts the ASCII string at [rdi] to a BPFC/S 16-bit integer in AX
-    xor eax, eax
-    xor ecx, ecx
-.convert_loop:
-    lodsb
-    test al, al
-    jz .done
-    sub al, '0'
-    imul ax, cx, 10
-    add cx, ax
-    jmp .convert_loop
-.done:
-    mov ax, cx
+
+VALREG:
+       lea rdi,[dia]
+    mov rax, 0
+
+validarDia: ; recorro vector de dias
+    lea rcx, [diasValidos + rax*2]
+    mov cx, word[rcx]
+    cmp di, cx
+    je  validarSemana
+    inc rax
+    cmp rax, 7
+    jne validarDia
+    jmp salir
+
+validarSemana:
+
+    mov rdi, msgvalido
+    mPrintf
+
+    mov [numDia], rax
+    mov rax, [semana]
+    sub rsp,8
+    call atoi
+    add rsp,8
+
+    mov [auxSemana],rdi
+    cmp rdi, 0
+    jle salir
+    cmp rdi,6
+    jg salir
+
+validoRegistro:
+    mov rdi, msgvalido
+    mPrintf
+    mov byte [isValid], 'S'
     ret
+
+salir:
+    mov rdi, msgNovalido
+    mPrintf
+    mov byte [isValid], 'N'
+    ret
+
+
+
