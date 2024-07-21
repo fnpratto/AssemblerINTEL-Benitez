@@ -13,145 +13,203 @@
 ;si el registro es válido, o en caso contrario una ‘N’. Se deberá validar el Día de la semana y la Semana.
 ;Se pide realizar un programa assembler Intel x86 que cargue la matriz C con la información del archivo
 ; de entrada previamente validada. Luego se solicita listar todas las actividades de todas las semanas 
-;del día almacenado en DiaIng   DD XX.
+;del día almacenado en DiaIng	DD	XX.
 
-section .data
-    filename db 'CALEN.DAT', 0
-    formatActivity db "%s", 10, 0
-    formatNoActivities db 'No activities for %s', 10, 0
-    days db 'DO', 'LU', 'MA', 'MI', 'JU', 'VI', 'SA'
-    DiaIng db 'LU', 0  ; Example input day for listing activities
-
-section .bss
-    C resb 7*6*200  ; Matrix of activities (7 days, 6 weeks, 200 chars each)
-    buffer resb 23  ; Buffer to read a record from the file
-    isValid resb 1  ; Validation result (S or N)
-
-section .text
-extern fopen, fread, fclose, printf
-global main
-
-%macro mPrintf 1
+%macro mFopen 0
     sub rsp, 8
-    mov rdi, %1
-    mov rax, 0
+    call fopen
+    add rsp, 8 
+%endmacro
+
+%macro mFread 0
+    sub rsp, 8
+    call fread
+    add rsp, 8
+%endmacro
+
+%macro mFclose 0
+    sub rsp, 8
+    call fclose
+    add rsp, 8
+%endmacro
+
+%macro mPrintf 0
+    sub rsp, 8
     call printf
     add rsp, 8
 %endmacro
 
-VALCAL:
-    ; Validate the record in the buffer
-    ; Assume buffer structure: [2-byte day][1-byte week][20-byte activity]
-    ; Return 'S' in [isValid] if valid, 'N' if invalid
-    ; Validate day of the week
-    movzx eax, word [buffer]
-    lea rdi, [days]
-    mov ecx, 7
-.valid_day_loop:
-    cmp eax, word [rdi]
-    je .valid_day
-    add rdi, 2
-    loop .valid_day_loop
-    mov byte [isValid], 'N'
-    ret
-.valid_day:
-    ; Validate week (1-6)
-    movzx eax, byte [buffer + 2]
-    cmp eax, 1
-    jl .invalid_week
-    cmp eax, 6
-    jg .invalid_week
-    mov byte [isValid], 'S'
-    ret
-.invalid_week:
-    mov byte [isValid], 'N'
-    ret
+
+section .data
+    ; file ops
+    filename db 'CALEN.DAT', 0
+    modo db 'rb', 0
+    formatActivity db '%s', 10, 0
+    formatoActividad db 'Dia: %s, Semana: %hhi, Actividad: %s', 10, 0
+    diasValidos dw "LU", "MA", "MI", "JU", "VI", "SA", "DO"
+
+    ; error messages
+    errorOpenMsg db 'Error al abrir el archivo', 10, 0
+    msgCloseFile db 'Cerrando archivo', 10, 0
+    msgNovalido db 'Registro no valido', 10, 0
+    msgvalido db 'Registro valido', 10, 0
+
+    auxactividad db  "********************",0
+    auxdia db "**",0
+
+section .bss
+    C resb 7*6*20  ; Matrix of activities (7 days, 6 weeks, 200 chars each)
+    registro:
+        dia resb 2
+        semana resb 1
+        actividad resb 20
+        nuevaLinea resb 1
+
+    idArchivo resq 1
+    isValid resb 1
+    auxSemana resd 1
+    numDia resb 1
+
+section .text
+extern fopen, fread, fclose, printf, atoi , puts
+global main
 
 main:
     ; Open file
     lea rdi, [filename]
-    mov rsi, 0  ; "r" for reading
-    call fopen
-    test rax, rax
-    jz end  ; If fopen failed, exit
-    mov rbx, rax  ; Save file pointer
+    mov rsi, modo  ; "r" for reading
+    mFopen
+    cmp rax,0
+    jle errorOpen  ; If fopen failed, exit
+    mov qword[idArchivo], rax  ; Save file pointer
 
-read_loop:
-    ; Read a record from the file
-    lea rdi, [buffer]
-    mov rsi, 1
-    mov rdx, 23
-    call fread
-    test rax, rax
-    jz close_file  ; If fread failed or EOF, exit loop
+LeerRegistro:
+    lea     rdi, [registro]   ;Param 1: direccion de area de memoria donde se copiaran los datos
+    mov     rsi, 24          ;Param 2: longitud del registro completo
+    mov     rdx, 1               ;Param 3: cant de registros
+    mov     rcx, [idArchivo]    ;Param 4: el handle del archivo a leer para completar el registro
+    mFread
 
-    ; Validate the record
-    call VALCAL
-    cmp byte [isValid], 'N'
-    je read_loop  ; If invalid, read next record
+    cmp     rax, 0
+    jle     close_file
 
-    ; Get day index
-    movzx eax, word [buffer]
-    lea rdi, [days]
-    mov ecx, 7
-.day_index_loop:
-    cmp eax, word [rdi]
-    je .found_day_index
-    add rdi, 2
-    loop .day_index_loop
-    jmp read_loop
-.found_day_index:
-    sub rdi, days
-    shr rdi, 1  ; rdi now contains the index of the day (0-6)
+  
 
-    ; Get week index
-    movzx eax, byte [buffer + 2]
-    dec eax  ; Convert to 0-based index
-
-    ; Copy activity to matrix
-    lea rsi, [buffer + 3]
-    lea rdi, [C + rdi*6*200 + eax*200]
     mov rcx, 20
+    lea rsi, [actividad]
+    lea rdi , [auxactividad]
     rep movsb
 
-    jmp read_loop
+    mov rcx, 2
+    lea rsi, [dia]
+    lea rdi , [auxdia]
+    rep movsb
+
+    lea rdi, [formatoActividad]
+    lea rsi, [auxdia]
+    xor rdx,rdx
+    mov dl, byte[semana]
+    lea rcx, [auxactividad]
+    mPrintf
+
+  ; Validate the record
+    sub rsp,8
+    call VALCAL
+    add rsp, 8
+
+    cmp    byte[isValid],'N'
+    je     LeerRegistro
+
+
+actualizarMatriz:
+    ; Calculate the position in the matrix
+    mov rax, [numDia]
+    mov rdx, 140
+    mul rdx
+    mov [numDia],rax
+    mov rax, [auxSemana]
+    dec rax
+    mov rdx, 20
+    mul rdx
+
+
+    mov rdi, [numDia]
+    add rax, rdi
+    
+    ; Copy the activity to the matrix
+    mov rdi, [C + rax]
+    mov [actividad],rdi
+
+    mov rcx, 20
+    mov rsi, actividad
+    mov rdi , auxactividad
+    rep movsb
+
+    mov rcx, 2
+    mov rsi, dia
+    mov rdi , auxdia
+    rep movsb
+
+    mov rdi, formatoActividad
+    mov rsi, auxdia
+    mov rdx, [auxSemana]
+    mov rcx, auxactividad
+    mPrintf
+
+    jmp LeerRegistro
 
 close_file:
-    ; Close the file
-    mov rdi, rbx
-    call fclose
+    mov rdi, msgCloseFile
+    mPrintf
+    mov     rdi, [idArchivo]
+    mFclose
+    ret
 
-    ; List all activities for the specified day (DiaIng)
-    lea rdi, [DiaIng]
-    movzx eax, word [rdi]
-    lea rdi, [days]
-    mov ecx, 7
-.list_day_index_loop:
-    cmp eax, word [rdi]
-    je .found_list_day_index
-    add rdi, 2
-    loop .list_day_index_loop
-    jmp end  ; If day not found, exit
-.found_list_day_index:
-    sub rdi, days
-    shr rdi, 1  ; rdi now contains the index of the day (0-6)
 
-    ; Print activities
-    mov ecx, 6
-    mov rsi, rdi
-.print_activities_loop:
-    lea rdi, [C + rsi*6*200 + ecx*200]
-    cmp byte [rdi], 0
-    je .no_activities
-    mPrintf formatActivity
-    loop .print_activities_loop
-    jmp end
-.no_activities:
-    lea rdi, [formatNoActivities]
-    lea rsi, [DiaIng]
-    mPrintf rdi
+VALCAL:
+    mov di,dia
+    mov rax, 0
 
-end:
-    ; Exit program
-    mov eax, 0
+validarDia: ; recorro vector de dias
+    lea rcx, [diasValidos + rax*2]
+
+    mov cx, word[rcx]
+    cmp di, cx
+    je  validarSemana
+    inc rax
+    cmp rax, 7
+    jne validarDia
+    jmp salir
+
+validarSemana:
+
+    mov rdi, msgvalido
+    mPrintf
+
+    mov [numDia], rax
+
+    mov dl, [semana]
+    cmp dl, 0
+    jle salir
+    cmp dl,6
+    jg salir
+
+validoRegistro:
+    mov rdi, msgvalido
+    mPrintf
+    mov byte [isValid], 'S'
+    ret
+
+salir:
+    mov rdi, msgNovalido
+    mPrintf
+    mov byte [isValid], 'N'
+    ret
+
+
+; Errors
+
+errorOpen:
+    lea rdi, [errorOpenMsg]
+    mPrintf
     ret

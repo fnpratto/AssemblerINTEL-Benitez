@@ -25,21 +25,25 @@ section .data
         db "LU"
         db 4
         db "Actividad 1         "
+        db 0x0A
 
     segundo:
         db "MA"
         db 2
         db "Actividad 2         "
+        db 0x0A
 
     tercero:
         db "SA"
         db 9
         db "Actividad 3         "
+        db 0x0A
 
     cuarto:
         db "DO"
         db 1
         db "Actividad 4         "
+        db 0x0A
 
 section .bss
     idArchivo resq 1
@@ -53,29 +57,31 @@ main:
     lea rdi, [filename]
     mov rsi, modo
     mFopen
+    test rax, rax
+    js error_open
     mov qword[idArchivo], rax  ; Save file pointer
 
     ; write
     lea rdi, [primero]
-    mov rsi, 23
+    mov rsi, 24
     mov rdx, 1
     mov rcx, qword[idArchivo]
     mFwrite
 
     lea rdi, [segundo]
-    mov rsi, 23
+    mov rsi, 24
     mov rdx, 1
     mov rcx, qword[idArchivo]
     mFwrite
 
     lea rdi, [tercero]
-    mov rsi, 23
+    mov rsi, 24
     mov rdx, 1
     mov rcx, qword[idArchivo]
     mFwrite
 
     lea rdi, [cuarto]
-    mov rsi, 23
+    mov rsi, 24
     mov rdx, 1
     mov rcx, qword[idArchivo]
     mFwrite
@@ -84,4 +90,8 @@ main:
     mov rdi, qword[idArchivo]
     mFclose
     
+    ret
+
+
+error_open:
     ret
