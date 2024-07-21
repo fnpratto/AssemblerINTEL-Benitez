@@ -1,4 +1,4 @@
-nasm -f elf64 ej20_write.asm -o main.o
+nasm -f elf64 convertir_binario_hexa.asm -o main.o
 
 gcc main.o -o juego.out -no-pie -z noexecstack
 

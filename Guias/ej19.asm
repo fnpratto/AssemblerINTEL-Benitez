@@ -12,9 +12,10 @@
 section .data
     filename db 'carbina.dat', 0
     formatResult db 'Sum of secondary diagonal: %d', 10, 0
+    M times 20 times 20 resd 0 ; Matrix of 20x20 BPFC/S 16-bit integers, initialized to zero
+    
 
 section .bss
-    M resw 20*20  ; Matrix of 20x20 BPFC/S 16-bit integers, initialized to zero
     buffer resb 18  ; Buffer to read a record from the file
     sum resd 1  ; Sum of the secondary diagonal
 

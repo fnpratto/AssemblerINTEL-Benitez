@@ -57,6 +57,9 @@ section .data
     auxactividad db  "********************",0
     auxdia db "**",0
 
+    longElemento db 20
+    longFila db 140
+
 section .bss
     C resb 7*6*20  ; Matrix of activities (7 days, 6 weeks, 200 chars each)
     registro:
@@ -94,6 +97,10 @@ LeerRegistro:
     jle     close_file
 
   
+    ; Validate the record
+    sub rsp,8
+    call VALCAL
+    add rsp, 8
 
     mov rcx, 20
     lea rsi, [actividad]
@@ -112,49 +119,30 @@ LeerRegistro:
     lea rcx, [auxactividad]
     mPrintf
 
-  ; Validate the record
-    sub rsp,8
-    call VALCAL
-    add rsp, 8
 
     cmp    byte[isValid],'N'
     je     LeerRegistro
 
-
 actualizarMatriz:
     ; Calculate the position in the matrix
-    mov rax, [numDia]
-    mov rdx, 140
-    mul rdx
-    mov [numDia],rax
-    mov rax, [auxSemana]
-    dec rax
-    mov rdx, 20
-    mul rdx
+    xor rax,rax
+    mov al, byte[numDia]
+    dec al
+    mov dl, byte[longFila]
+    mul dl
+    mov [numDia],al
+    mov al, [semana]
+    dec al
+    mov dl, byte[longElemento]
+    mul dl
 
-
-    mov rdi, [numDia]
-    add rax, rdi
+    mov dil, [numDia]
+    add al, dil
+    ; al tiene posicion 
     
     ; Copy the activity to the matrix
     mov rdi, [C + rax]
     mov [actividad],rdi
-
-    mov rcx, 20
-    mov rsi, actividad
-    mov rdi , auxactividad
-    rep movsb
-
-    mov rcx, 2
-    mov rsi, dia
-    mov rdi , auxdia
-    rep movsb
-
-    mov rdi, formatoActividad
-    mov rsi, auxdia
-    mov rdx, [auxSemana]
-    mov rcx, auxactividad
-    mPrintf
 
     jmp LeerRegistro
 
@@ -163,11 +151,11 @@ close_file:
     mPrintf
     mov     rdi, [idArchivo]
     mFclose
+
     ret
 
-
 VALCAL:
-    mov di,dia
+    mov di,word[dia]
     mov rax, 0
 
 validarDia: ; recorro vector de dias
@@ -182,9 +170,6 @@ validarDia: ; recorro vector de dias
     jmp salir
 
 validarSemana:
-
-    mov rdi, msgvalido
-    mPrintf
 
     mov [numDia], rax
 
