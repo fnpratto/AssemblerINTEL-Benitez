@@ -12,12 +12,28 @@
 section .data
     filename db 'carbina.dat', 0
     formatResult db 'Sum of secondary diagonal: %d', 10, 0
+    modo db "rb",0
     M times 20 times 20 resd 0 ; Matrix of 20x20 BPFC/S 16-bit integers, initialized to zero
+    idArchivo db 0
+    longFila dq 400
+    longElemento dq  1 
+    formatoLinea db "Auxilidar num binario: %hi , pos x: %hhi , pos y : %hhi",10, 0
+    msgvalido db "es valido el registro",10,0
+    msgNovalido db "no valido el registro",10,0
+    formatoCoordenada db "X: %hhi, y: %hhi"
+    aux_num_binario dw 0
+    formatoDX db "dx: %hi",10,0
     
 
 section .bss
-    buffer resb 18  ; Buffer to read a record from the file
+    registro:
+        num_binario resb 16
+        x  resb 1
+        y  resb 1
     sum resd 1  ; Sum of the secondary diagonal
+
+    isValid resb 0
+
 
 section .text
 extern fopen, fread, fclose, printf
@@ -29,13 +45,21 @@ global main
     add rsp, 8
 %endmacro
 
+%macro mFopen 0
+    sub rsp, 8
+    call fopen
+    add rsp, 8
+%endmacro
+
+
+
 main:
     ; Open file
     lea rdi, [filename]
-    mov rsi, modo  ; "r" for reading
+    mov rsi, modo  ; "rb" for reading
     mFopen
     cmp rax,0
-    jle errorOpen  ; If fopen failed, exit
+    jle end  ; If fopen failed, exit
     mov qword[idArchivo], rax  ; Save file pointer
 
 
@@ -53,24 +77,8 @@ LeerRegistro:
 
     ; Validate the record
     sub rsp,8
-    call VALCAL
+    call VALREG
     add rsp, 8
-
-    mov rcx, 20
-    mov rsi, actividad
-    mov rdi , auxactividad
-    rep movsb
-
-    mov rcx, 2
-    mov rsi, dia
-    mov rdi , auxdia
-    rep movsb
-
-    mov rdi, formatoActividad
-    mov rsi, auxdia
-    mov rdx, [semana]
-    mov rcx, auxactividad
-    mPrintf
 
 
     cmp    byte[isValid],'N'
@@ -78,98 +86,107 @@ LeerRegistro:
 
 actualizarMatriz:
     ; Calculate the position in the matrix
-    mov rax, [numDia]
-    mov rdx, 140
-    mul rdx
-    mov [numDia],rax
-    mov rax, [auxSemana]
-    dec rax
-    mov rdx, 20
-    mul rdx
+    xor rax,rax
+    mov al, byte[x]
+    dec al
+    mov dl, byte[longFila]
+    mul dl
+    mov [x],al
+    mov al, [y]
+    dec al
+    mov dl, byte[longElemento]
+    mul dl
 
-
-    mov rdi, [numDia]
-    add rax, rdi
+    mov dil, [x]
+    add al, dil
     
     ; Copy the activity to the matrix
-    mov rdi, [C + rax]
-    mov [actividad],rdi
-
-    mov rcx, 20
-    mov rsi, actividad
-    mov rdi , auxactividad
-    rep movsb
-
-    mov rcx, 2
-    mov rsi, dia
-    mov rdi , auxdia
-    rep movsb
-
-    mov rdi, formatoActividad
-    mov rsi, auxdia
-    mov rdx, [auxSemana]
-    mov rcx, auxactividad
-    mPrintf
+    mov rdi, [M + rax]
+    mov [aux_num_binario],rdi ; chequear
 
     jmp LeerRegistro
 
 close_file:
     ; Close the file
-    mov rdi, rbx
+    mov rdi, [idArchivo]
+    sub rsp, 8
     call fclose
-
-    ; Calculate the sum of the secondary diagonal
-    xor ecx, ecx  ; Clear sum
-    mov edx, 19  ; Start with the last column of the first row
+    add rsp,8
 
 end:
     ; Exit program
-    mov eax, 0
     ret
 
 
 VALREG:
-       lea rdi,[dia]
+    mov rdi,[x]
     mov rax, 0
 
-validarDia: ; recorro vector de dias
-    lea rcx, [diasValidos + rax*2]
-    mov cx, word[rcx]
-    cmp di, cx
-    je  validarSemana
-    inc rax
-    cmp rax, 7
-    jne validarDia
-    jmp salir
+    validarX: 
 
-validarSemana:
+        mov dl, [x]
+        cmp dl, 0
+        jle salir
+        cmp dl,20
+        jg salir
 
-    mov rdi, msgvalido
-    mPrintf
+    validarY:
 
-    mov [numDia], rax
-    mov rax, [semana]
-    sub rsp,8
-    call atoi
-    add rsp,8
+        mov dl, [y]
+        cmp dl, 0
+        jle salir
+        cmp dl,20
+        jg salir
 
-    mov [auxSemana],rdi
-    cmp rdi, 0
-    jle salir
-    cmp rdi,6
-    jg salir
+    validarBinario:
+        xor rsi, rsi ; registro num
+        xor rax,rax; iteradir
+        xor rdi,rdi; shift
+        xor rcx,rcx
+        mov [aux_num_binario],rcx
 
-validoRegistro:
-    mov rdi, msgvalido
-    mPrintf
-    mov byte [isValid], 'S'
-    ret
+        loop:
+            mov sil, byte[num_binario+rax]  
+            cmp sil, "1"
+            je continuar
+            cmp sil ,"0"
+            je fin_loop
+            jmp salir
 
-salir:
-    mov rdi, msgNovalido
-    mPrintf
-    mov byte [isValid], 'N'
-    ret
+        continuar:         
+            mov dx, 1
+            mov cl, 15
+            sub cl,al
+            shl dx,cl ; shl inmediato / cl
+
+            ;muevo a registro 
+            add [aux_num_binario],dx
+
+        fin_loop:
+            inc rax
+            cmp rax, 15
+
+            jge validoRegistro
+            jmp loop
+
+    validoRegistro:
+        mov rdi, formatoLinea
+        mov rsi, [aux_num_binario]
+        mov rdx, [x]
+        mov rcx, [y]
+        mPrintf
+
+
+        mov rdi, msgvalido
+        mPrintf
+        mov byte [isValid], 'S'
+        ret
+
+    salir:
+        mov rdi, msgNovalido
+        mPrintf
+        mov byte [isValid], 'N'
+        ret
 
 
 
