@@ -89,8 +89,6 @@ main:
     call fclose
     add rsp, 8
 
-    ; Salir
-    mov eax, 0
     ret
 
 error_open:
