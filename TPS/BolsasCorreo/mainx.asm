@@ -24,7 +24,7 @@
 ;paquetes: 
 
 global main
-extern fopen, printf, atoi, fread, fclose, sscanf, strcmp ,puts, fwrite
+extern fopen, printf, atoi, fread, fclose, sscanf, strcmp
 
 %define MardelPlata 'P'
 %define Mendoza 'M' 
@@ -60,22 +60,9 @@ extern fopen, printf, atoi, fread, fclose, sscanf, strcmp ,puts, fwrite
     add rsp,8
 %endmacro  
 
-%macro mPuts 0
-    sub rsp, 8
-    call puts
-    add rsp,8
-%endmacro  
-
-%macro mFwrite 0
-    sub rsp, 8
-    call fwrite
-    add rsp,8
-%endmacro  
-
 
 section .data
     archivo db "paquetes.txt",0
-    modoEscritura db "w", 0
     modo db "r",0
     error_abrir db "Error de archivo",0
     nombreAux db "*******",0
@@ -83,43 +70,36 @@ section .data
     formatInt db "%i",10,0
     formatChar db "%c",10,0
     formatString db "%s",10,0
-    linea_format db "%c%s%d",0
+    linea_format db "%c,%s,%d",0
     sumaTotal  dq 0
-    cantidad dq  0
     buffer times 200 db 0
 
-    headerMardelPlata db "Destino: Mar del Plata", 10, 0
-    headerMendoza db "Destino: Mendoza",10, 0
-    headerSalta db "Destino: Salta", 10, 0
+    headerMardelPlata db "Destino: Mar del Plata\n", 0
+    headerMendoza db "Destino: Mendoza\n", 0
+    headerSalta db "Destino: Salta\n", 0
 
-    objetoP db "Objeto: %s (Peso: %d)", 0
-    nuevoPaquete db "Nuevo paquete:", 0
+    objetoP db "Objeto: %s (Peso: %d)\n", 0
+    nuevoPaquete db "Nuevo paquete:\n", 0
 
     formatoagregarmardel db "Se agrega paquete yendo a mardel ",0
 
 
 section .bss
-    idArchivoLectura resq 1
-    registro times 0 resb 1
-        lugar resb 1
-        nombre times 7 resb 1
-        peso resd 1
-        salto resb 1
-
-
+    idArchivo resq 0
+    lugar resb 1
+    nombre times 7 resb 1
+    peso resd 1
     ;paquete:
     destino    resb 1
     objeto     times 4 resb 7 ;7nombre + peso
     pesos      times 4 resb 1
 
-    paqueteP times 5 resb 40
-    pesosPaqueteP times 5 resq 1
+    paqueteP times 5 resb 200
     paqueteM times 5 resb 200
     paqueteS times 5 resb 200
     sumaTotalP resd 1
     sumaTotalM resd 1
     sumaTotalS resd 1
-    charTest resb 1
 
 section .text
 
@@ -131,36 +111,35 @@ main:
     cmp rax, 0
     jle errorApertura
 
-    mov qword [idArchivoLectura], rax
+    mov qword [idArchivo], rax
 
 leer_registro:
-    mov rdi, registro
+    mov rdi, buffer
     mov rsi, 13
     mov rdx, 1
-    mov rcx, [idArchivoLectura]
+    mov rcx, [idArchivo]
     mFread
            
     cmp     rax, 0
     jle     close_file
 
+    ;guardamos los datos
+    xor rdx, rdx
+    lea rdi, [buffer]
+    lea rsi, [linea_format]
+    lea rdx, byte[lugar]
+    mov rcx, nombre
+    lea r8, [peso]
+    mSscanf
 validar_campos:
     
     valido_con_lugares:
-
         xor rax, rax
-        xor rdi, rdi
-        lea rdi, [lugar]
-        lea rsi, [formatChar]
-        lea rdx, [lugarAux]
-        mSscanf
-
-        cmp rax, 0
-        je close_file
-
-        xor rax, rax
-        mov rdi, formatString
-        lea rsi, [lugarAux]
+        mov rdi, formatChar
+        lea rsi, byte[lugar]
         mPrintf
+        jmp validar_objeto
+
 
     validar_objeto:
         mov     rcx, 7
@@ -183,63 +162,45 @@ validar_campos:
         mov rdi, formatInt
         mov rsi, [peso]
         mPrintf 
-    
+
 distribuir:
 
-    movzx rdi, byte [lugarAux]
+    movzx rdi, byte [lugar]
     cmp rdi, MardelPlata
     je distribuir_mardel
-    
+
     cmp rdi, Mendoza
     je distribuir_mendoza
 
-    cmp rdi,Salta
+    cmp rdi, Salta
     je distribuir_salta
 
     jmp leer_registro
 
+
 distribuir_mardel:
-    xor rdi,rdi
-    lea rdi, [headerMardelPlata]
-    mPuts
+    lea rdi, [formatoagregarmardel]
+    mPrintf
 
     mov eax, [sumaTotalP]
     add eax, [peso]
     cmp eax, 17
-
     jle agregar_mardel
     jmp nuevo_paquete_mardel
 
 agregar_mardel:
-    ;actualizo total
     mov [sumaTotalP], eax
-
-    ; aumento cantidad del paquete
-    mov rsi, cantidad
-    inc rsi
-
-    ;agrego nombre
     mov rdi, paqueteP
-
-    ; agregar nombre
-    mov rdi, paqueteP
-    mov rbx, rax
-    imul rbx, rbx, 200
-    add rdi, rbx
+    add rdi, [sumaTotalP]
     mov rsi, nombre
-    mov rcx, 7
-    rep movsb ; lo mando al rdi
-
-    ;agrego peso
+    movsb
     mov rsi, [peso]
-    mov [pesosPaqueteP+rax*8], rsi
-
+    mov [rdi], rsi
     jmp leer_registro
 
 distribuir_mendoza:
-    mov rdi, headerMendoza
-    mPuts
-
+    mov rdi, formatoagregarmardel
+    mPrintf
     mov eax, [sumaTotalM]
     add eax, [peso]
     cmp eax, 17
@@ -257,9 +218,8 @@ agregar_mendoza:
     jmp leer_registro
 
 distribuir_salta:
-    mov rdi, headerSalta
-    mPuts
-
+    mov rdi, formatoagregarmardel
+    mPrintf
     mov eax, [sumaTotalS]
     add eax, [peso]
     cmp eax, 17
@@ -269,7 +229,6 @@ distribuir_salta:
     mov eax, [peso]
 
 agregar_salta:
-
     mov [sumaTotalS], eax
     mov rdi, paqueteS
     add rdi, [sumaTotalS]
@@ -281,22 +240,19 @@ agregar_salta:
 
 nuevo_paquete_mardel:
     mov rdi, nuevoPaquete
-    mPuts
-    ;TO-DO 
+    mPrintf
     mov dword[sumaTotalP], 0
     jmp leer_registro
 
 nuevo_paquete_mendoza:
     mov rdi, nuevoPaquete
-    mPuts
-    ;TO-DO 
+    mPrintf
     mov dword[sumaTotalM], 0
     jmp leer_registro
 
 nuevo_paquete_salta:
     mov rdi, nuevoPaquete
-    mPuts
-    ;TO-DO 
+    mPrintf
     mov dword[sumaTotalS], 0
     jmp leer_registro
 
@@ -304,13 +260,17 @@ datos_invalidos:
     jmp leer_registro
 
 close_file:
-    ; Cerrar archivo de lectura
-    mov rdi, [idArchivoLectura]
+    ; Close the file
+    mov rdi, [idArchivo]
     mFclose
+
 end:
+    ; Exit program
+    mov eax, 0
     ret
 
 errorApertura:
     mov rdi, error_abrir
     mPrintf
     ret
+
