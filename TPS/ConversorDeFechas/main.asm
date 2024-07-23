@@ -9,6 +9,8 @@
 
 ; faltan 15 minutos-> falta que cuando se tenga mas de 3 IIII se convierta a IV
 ;                  -> Juliano (que solo imprima los ultimos dos numeros)
+;                  -> preguntar de que a que
+;                  -> mes falta segun el mes los dias (juliano)
 
 
 global main

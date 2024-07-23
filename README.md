@@ -1,6 +1,6 @@
-# GuiaAssemblerINTEL-Benitez (14/21)
+# GuiaAssemblerINTEL-Benitez (19/21)
 
-nasm -f elf64 ej10.asm -o main.o 
+nasm -f elf64 nombre.asm -o main.o 
 
 gcc main.o -o juego.out -no-pie -z noexecstack
 

@@ -1,17 +1,23 @@
 ;*************************************************************************************************
 ; edificio.asm
-; Se dispone de una matriz 12x12 que representa un edificio nuevo a estranar, donde tiene 12 pisos con 12 departamentos en cada uno.
-; Cada elemento de la matriz es un binario de 4 bytes, donde guarda un precio de venta en U$S de cada departamento. Se dispone de
-; un archivo (PRECIOS.dat) que contiene los precios de los departamentos, donde cada registro del archivo contiene los sig campos:
+;Ej Parcial (1ra Oportunidad - 16-06-2020) (Dptos) F,R,R
+; Se dispone de una matriz 12x12 que representa un edificio nuevo a estranar, donde tiene
+;12 pisos con 12 departamentos en cada uno.
+; Cada elemento de la matriz es un binario de 4 bytes, donde guarda un precio de venta en U$S de 
+;cada departamento. Se dispone de
+; un archivo (PRECIOS.dat) que contiene los precios de los departamentos, donde cada 
+;registro del archivo contiene los sig campos:
 ;       - Piso: Caracter de 2 bytes
 ;       - Departamento: Binario de 1 byte
 ;       - Precio Venta: Binario de 4 bytes
 ;
-; Se pide realizar un programa en assembler Intel 80x86 que realice la carga de la matriz a través del archivo. Como la informacion 
+; Se pide realizar un programa en assembler Intel 80x86 que realice la carga de la 
+;matriz a través del archivo. Como la informacion 
 ; del archivo puede ser incorrecta se debera validar haciendo uso de una rutina interna (VALREG) que descartará los registros
 ; invalidos (la rutina deberá validar todos los campos del registro).  
 ;
-; Una vez finalizada la carga, se solicitara ingresar por teclado un numero (x) y un precio de venta (no se requieren validar) y se
+; Una vez finalizada la carga, se solicitara ingresar por teclado un numero (x) y un 
+;precio de venta (no se requieren validar) y se
 ; debera mostrar todos los departamentos/pisos cuyo precio de venta sea menor al ingresado.
 ;      - Para alumnos con Padrón Par, x será un numero de piso y se debera mostrar por pantalla todos los numeros de 
 ;                     departamento cuyo precio sea inferior al ingresado en el piso ingresado.
