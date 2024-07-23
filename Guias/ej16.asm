@@ -1,4 +1,4 @@
-;16.	Se tiene el campo NUM que corresponde a un número almacenado 
+;16. Se tiene el campo NUM que corresponde a un número almacenado 
 ;como BPF c/s16 bits en memoria. Se pide realizar un programa necesario 
 ;para rebatir los bits que componen al número e imprimir el número en configuración 
 ;binaria por pantalla. (Rebatir significa poner el 1er. bit del número en el lugar 
