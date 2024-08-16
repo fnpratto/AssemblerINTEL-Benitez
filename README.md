@@ -1,4 +1,4 @@
-# GuiaAssemblerINTEL-Benitez (19/21)
+# GuiaAssemblerINTEL-Benitez 
 
 nasm -f elf64 nombre.asm -o main.o 
 
@@ -16,8 +16,9 @@ gcc main.o -o juego.out -no-pie -z noexecstack
 - Autos
 
 # Tps de anteriores cuatris
-- Dijkstra
+- Bolsas Correo
 - TP 11 Cifrado Playfair
 - OperacionesLogicas
 - Conversor de fechas
-- tp misterioso
+- operaciones de matrices
+  
